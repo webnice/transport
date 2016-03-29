@@ -158,8 +158,8 @@ func (cnt *contentImplementation) Transcode(from encoding.Encoding) ContentInter
 	}
 }
 
-// UnmarshalJSON Декодирование контента в структуру, предполагается что контент является json
-func (cnt *contentImplementation) UnmarshalJSON(i interface{}) (err error) {
+// ContentUnmarshalJSON Декодирование контента в структуру, предполагается что контент является json
+func (cnt *contentImplementation) ContentUnmarshalJSON(i interface{}) (err error) {
 	var rdc io.ReadCloser
 	var decoder *json.Decoder
 
@@ -178,8 +178,8 @@ func (cnt *contentImplementation) UnmarshalJSON(i interface{}) (err error) {
 	return
 }
 
-// UnmarshalXML Декодирование контента в структуру, предполагается что контент является xml
-func (cnt *contentImplementation) UnmarshalXML(i interface{}) (err error) {
+// ContentUnmarshalXML Декодирование контента в структуру, предполагается что контент является xml
+func (cnt *contentImplementation) ContentUnmarshalXML(i interface{}) (err error) {
 	var rdc io.ReadCloser
 	var decoder *xml.Decoder
 

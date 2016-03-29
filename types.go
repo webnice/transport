@@ -75,8 +75,8 @@ type ContentInterface interface {
 	Bytes() ([]byte, error)
 	ReaderCloser() (io.ReadCloser, error)
 	Write(io.Writer) error
-	UnmarshalJSON(interface{}) error
-	UnmarshalXML(interface{}) error
+	ContentUnmarshalJSON(interface{}) error
+	ContentUnmarshalXML(interface{}) error
 	Untar() ContentInterface
 	Unzip() ContentInterface
 }
