@@ -69,14 +69,20 @@ type HeaderInterface interface {
 
 // ContentInterface is an contentImplementation interface
 type ContentInterface interface {
-	Transcode(from encoding.Encoding) ContentInterface
+	Transcode(encoding.Encoding) ContentInterface
+	Transform(TransformFunc) ContentInterface
 	String() (string, error)
 	Bytes() ([]byte, error)
 	ReaderCloser() (io.ReadCloser, error)
 	Write(io.Writer) error
 	UnmarshalJSON(interface{}) error
 	UnmarshalXML(interface{}) error
+	Untar() ContentInterface
+	Unzip() ContentInterface
 }
+
+// TransformFunc is an func for streaming content conversion
+type TransformFunc func(io.Reader) (io.Reader, error)
 
 // implementation is an implementation
 type implementation struct {
@@ -132,4 +138,7 @@ type contentImplementation struct {
 	ResponseFHName string            // Имя временного файла
 	ResponseFH     *os.File          // Временный файл для получаемых данных
 	transcode      encoding.Encoding // Если не равно nil, то контент перекодируется на лету из указанной кодировки
+	transform      TransformFunc     // Функция потокового преобразования контента
+	unzip          bool              // =true - контент разархивируется методом ZIP, возвращается первый файл в архиве
+	untar          bool              // =true - контент разархивируется методом TAR, возвращается первый файл в архиве
 }

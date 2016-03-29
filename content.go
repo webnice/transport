@@ -3,6 +3,8 @@ package transport // import "github.com/webdeskltd/transport"
 //import "github.com/webdeskltd/debug"
 import "github.com/webdeskltd/log"
 import (
+	"archive/tar"
+	"archive/zip"
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
@@ -36,22 +38,92 @@ func (cnt *contentImplementation) Write(wr io.Writer) (err error) {
 // ReaderCloser Получение io.ReadCloser для контента
 func (cnt *contentImplementation) ReaderCloser() (rdr io.ReadCloser, err error) {
 	var fh *os.File
-	fh, err = os.Open(cnt.ResponseFHName)
-	if err != nil {
+	var tmp io.ReadCloser
+
+	if fh, err = os.Open(cnt.ResponseFHName); err != nil {
 		err = fmt.Errorf("Error to open temporary file '%s': %s", cnt.ResponseFHName, err)
 		return
 	}
+	tmp = fh
 
-	// Перекодирование контента если установлена кодировка from
+	// Разархивация ZIP
+	if cnt.unzip {
+		if tmp, err = cnt.UncompressZip(fh); err != nil {
+			return
+		}
+	}
+
+	// Разархивация TAR
+	if cnt.untar {
+		if tmp, err = cnt.UncompressTar(fh); err != nil {
+			return
+		}
+	}
+
+	// Перекодирование контента если установлен транскодер
 	if cnt.transcode != nil {
 		// Создание ReadCloser из Reader + func Close
 		rdr = data.NewReadCloser(
-			transform.NewReader(fh, cnt.transcode.NewDecoder()),
-			fh.Close,
+			transform.NewReader(tmp, cnt.transcode.NewDecoder()),
+			tmp.Close,
 		)
 	} else {
-		rdr = fh
+		rdr = tmp
 	}
+
+	// Преобразование контента если установлен трансформер
+	if cnt.transform != nil {
+		var newReader io.Reader
+		newReader, err = cnt.transform(rdr)
+		rdr = data.NewReadCloser(newReader, rdr.Close)
+	}
+
+	return
+}
+
+// UncompressZip Uncompress content as zip
+func (cnt *contentImplementation) UncompressZip(fh *os.File) (rdr io.ReadCloser, err error) {
+	var zipReader *zip.Reader
+	var fi os.FileInfo
+
+	if fi, err = fh.Stat(); err != nil {
+		return
+	}
+	if zipReader, err = zip.NewReader(fh, fi.Size()); err != nil {
+		err = fmt.Errorf("Zip archive error: %s", err.Error())
+		return
+	}
+	if len(zipReader.File) <= 0 {
+		err = fmt.Errorf("There are no files in the archive")
+		return
+	}
+	rdr, err = zipReader.File[0].Open()
+	if err != nil {
+		err = fmt.Errorf("Zip archive error, can't open file '%s': %s", zipReader.File[0].Name, err.Error())
+		return
+	}
+
+	return
+}
+
+// UncompressTar Uncompress content as tar
+func (cnt *contentImplementation) UncompressTar(fh *os.File) (rdr io.ReadCloser, err error) {
+	var tarReader *tar.Reader
+
+	tarReader = tar.NewReader(fh)
+	_, err = tarReader.Next()
+	if err == io.EOF {
+		err = fmt.Errorf("There are no files in the archive")
+		return
+	}
+	if err != nil {
+		err = fmt.Errorf("Tar archive error: %s", err.Error())
+		return
+	}
+	rdr = data.NewReadCloser(
+		tarReader,
+		fh.Close,
+	)
 
 	return
 }
@@ -80,8 +152,10 @@ func (cnt *contentImplementation) Transcode(from encoding.Encoding) ContentInter
 		ResponseFHName: cnt.ResponseFHName,
 		ResponseFH:     cnt.ResponseFH,
 		transcode:      from,
+		transform:      cnt.transform,
+		untar:          cnt.untar,
+		unzip:          cnt.unzip,
 	}
-	return cnt
 }
 
 // UnmarshalJSON Декодирование контента в структуру, предполагается что контент является json
@@ -147,5 +221,41 @@ func (cnt *contentImplementation) MakeCharsetReader() func(string, io.Reader) (i
 			nil, // Поток будет закрыт в родительской функции, Closer не требуется
 		)
 		return
+	}
+}
+
+// Transform Трансформирование исходного контента путём пропуска контента через переданный в функции ридер
+func (cnt *contentImplementation) Transform(fn TransformFunc) ContentInterface {
+	return &contentImplementation{
+		ResponseFHName: cnt.ResponseFHName,
+		ResponseFH:     cnt.ResponseFH,
+		transcode:      cnt.transcode,
+		transform:      fn,
+		untar:          cnt.untar,
+		unzip:          cnt.unzip,
+	}
+}
+
+// Unzip Разархивация контента методом TAR
+func (cnt *contentImplementation) Untar() ContentInterface {
+	return &contentImplementation{
+		ResponseFHName: cnt.ResponseFHName,
+		ResponseFH:     cnt.ResponseFH,
+		transcode:      cnt.transcode,
+		transform:      cnt.transform,
+		untar:          true,
+		unzip:          cnt.unzip,
+	}
+}
+
+// Unzip Разархивация контента методом ZIP
+func (cnt *contentImplementation) Unzip() ContentInterface {
+	return &contentImplementation{
+		ResponseFHName: cnt.ResponseFHName,
+		ResponseFH:     cnt.ResponseFH,
+		transcode:      cnt.transcode,
+		transform:      cnt.transform,
+		untar:          cnt.untar,
+		unzip:          true,
 	}
 }
