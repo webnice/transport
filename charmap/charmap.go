@@ -28,25 +28,25 @@ type Charmap interface {
 	CodePage858() encoding.Encoding
 	CodePage862() encoding.Encoding
 	CodePage866() encoding.Encoding
-	ISO8859_1() encoding.Encoding
-	ISO8859_2() encoding.Encoding
-	ISO8859_3() encoding.Encoding
-	ISO8859_4() encoding.Encoding
-	ISO8859_5() encoding.Encoding
-	ISO8859_6() encoding.Encoding
-	ISO8859_6E() encoding.Encoding
-	ISO8859_6I() encoding.Encoding
-	ISO8859_7() encoding.Encoding
-	ISO8859_8() encoding.Encoding
-	ISO8859_8E() encoding.Encoding
-	ISO8859_8I() encoding.Encoding
-	ISO8859_10() encoding.Encoding
-	ISO8859_13() encoding.Encoding
-	ISO8859_14() encoding.Encoding
-	ISO8859_15() encoding.Encoding
-	ISO8859_16() encoding.Encoding
-	KOI8R() encoding.Encoding
-	KOI8U() encoding.Encoding
+	Iso8859_1() encoding.Encoding
+	Iso8859_2() encoding.Encoding
+	Iso8859_3() encoding.Encoding
+	Iso8859_4() encoding.Encoding
+	Iso8859_5() encoding.Encoding
+	Iso8859_6() encoding.Encoding
+	Iso8859_6E() encoding.Encoding
+	Iso8859_6I() encoding.Encoding
+	Iso8859_7() encoding.Encoding
+	Iso8859_8() encoding.Encoding
+	Iso8859_8E() encoding.Encoding
+	Iso8859_8I() encoding.Encoding
+	Iso8859_10() encoding.Encoding
+	Iso8859_13() encoding.Encoding
+	Iso8859_14() encoding.Encoding
+	Iso8859_15() encoding.Encoding
+	Iso8859_16() encoding.Encoding
+	Koi8R() encoding.Encoding
+	Koi8U() encoding.Encoding
 	Macintosh() encoding.Encoding
 	MacintoshCyrillic() encoding.Encoding
 	Windows874() encoding.Encoding
@@ -106,98 +106,98 @@ func (cm *implementation) CodePage866() encoding.Encoding {
 	return charmap.CodePage866
 }
 
-// ISO8859_1 is the ISO 8859-1 encoding
-func (cm *implementation) ISO8859_1() encoding.Encoding {
+// Iso8859_1 is the ISO 8859-1 encoding
+func (cm *implementation) Iso8859_1() encoding.Encoding {
 	return charmap.ISO8859_1
 }
 
-// ISO8859_2 is the ISO 8859-2 encoding
-func (cm *implementation) ISO8859_2() encoding.Encoding {
+// Iso8859_2 is the ISO 8859-2 encoding
+func (cm *implementation) Iso8859_2() encoding.Encoding {
 	return charmap.ISO8859_2
 }
 
-// ISO8859_3 is the ISO 8859-3 encoding
-func (cm *implementation) ISO8859_3() encoding.Encoding {
+// Iso8859_3 is the ISO 8859-3 encoding
+func (cm *implementation) Iso8859_3() encoding.Encoding {
 	return charmap.ISO8859_3
 }
 
-// ISO8859_4 is the ISO 8859-4 encoding
-func (cm *implementation) ISO8859_4() encoding.Encoding {
+// Iso8859_4 is the ISO 8859-4 encoding
+func (cm *implementation) Iso8859_4() encoding.Encoding {
 	return charmap.ISO8859_4
 }
 
-// ISO8859_5 is the ISO 8859-5 encoding
-func (cm *implementation) ISO8859_5() encoding.Encoding {
+// Iso8859_5 is the ISO 8859-5 encoding
+func (cm *implementation) Iso8859_5() encoding.Encoding {
 	return charmap.ISO8859_5
 }
 
-// ISO8859_6 is the ISO 8859-6 encoding
-func (cm *implementation) ISO8859_6() encoding.Encoding {
+// Iso8859_6 is the ISO 8859-6 encoding
+func (cm *implementation) Iso8859_6() encoding.Encoding {
 	return charmap.ISO8859_6
 }
 
-// ISO8859_6E is the ISO 8859-6E encoding
-func (cm *implementation) ISO8859_6E() encoding.Encoding {
+// Iso8859_6E is the ISO 8859-6E encoding
+func (cm *implementation) Iso8859_6E() encoding.Encoding {
 	return charmap.ISO8859_6E
 }
 
-// ISO8859_6I is the ISO 8859-6I encoding
-func (cm *implementation) ISO8859_6I() encoding.Encoding {
+// Iso8859_6I is the ISO 8859-6I encoding
+func (cm *implementation) Iso8859_6I() encoding.Encoding {
 	return charmap.ISO8859_6I
 }
 
-// ISO8859_7 is the ISO 8859-7 encoding
-func (cm *implementation) ISO8859_7() encoding.Encoding {
+// Iso8859_7 is the ISO 8859-7 encoding
+func (cm *implementation) Iso8859_7() encoding.Encoding {
 	return charmap.ISO8859_7
 }
 
-// ISO8859_8 is the ISO 8859-8 encoding
-func (cm *implementation) ISO8859_8() encoding.Encoding {
+// Iso8859_8 is the ISO 8859-8 encoding
+func (cm *implementation) Iso8859_8() encoding.Encoding {
 	return charmap.ISO8859_8
 }
 
-// ISO8859_8E is the ISO 8859-8E encoding
-func (cm *implementation) ISO8859_8E() encoding.Encoding {
+// Iso8859_8E is the ISO 8859-8E encoding
+func (cm *implementation) Iso8859_8E() encoding.Encoding {
 	return charmap.ISO8859_8E
 }
 
-// ISO8859_8I is the ISO 8859-8I encoding
-func (cm *implementation) ISO8859_8I() encoding.Encoding {
+// Iso8859_8I is the ISO 8859-8I encoding
+func (cm *implementation) Iso8859_8I() encoding.Encoding {
 	return charmap.ISO8859_8I
 }
 
-// ISO8859_10 is the ISO 8859-10 encoding
-func (cm *implementation) ISO8859_10() encoding.Encoding {
+// Iso8859_10 is the ISO 8859-10 encoding
+func (cm *implementation) Iso8859_10() encoding.Encoding {
 	return charmap.ISO8859_10
 }
 
-// ISO8859_13 is the ISO 8859-13 encoding
-func (cm *implementation) ISO8859_13() encoding.Encoding {
+// Iso8859_13 is the ISO 8859-13 encoding
+func (cm *implementation) Iso8859_13() encoding.Encoding {
 	return charmap.ISO8859_13
 }
 
-// ISO8859_14 is the ISO 8859-14 encoding
-func (cm *implementation) ISO8859_14() encoding.Encoding {
+// Iso8859_14 is the ISO 8859-14 encoding
+func (cm *implementation) Iso8859_14() encoding.Encoding {
 	return charmap.ISO8859_14
 }
 
-// ISO8859_15 is the ISO 8859-15 encoding
-func (cm *implementation) ISO8859_15() encoding.Encoding {
+// Iso8859_15 is the ISO 8859-15 encoding
+func (cm *implementation) Iso8859_15() encoding.Encoding {
 	return charmap.ISO8859_15
 }
 
-// ISO8859_16 is the ISO 8859-16 encoding
-func (cm *implementation) ISO8859_16() encoding.Encoding {
+// Iso8859_16 is the ISO 8859-16 encoding
+func (cm *implementation) Iso8859_16() encoding.Encoding {
 	return charmap.ISO8859_16
 }
 
-// KOI8R is the KOI8-R encoding
-func (cm *implementation) KOI8R() encoding.Encoding {
+// Koi8R is the KOI8-R encoding
+func (cm *implementation) Koi8R() encoding.Encoding {
 	return charmap.KOI8R
 }
 
-// KOI8U is the KOI8-U encoding
-func (cm *implementation) KOI8U() encoding.Encoding {
+// Koi8U is the KOI8-U encoding
+func (cm *implementation) Koi8U() encoding.Encoding {
 	return charmap.KOI8U
 }
 

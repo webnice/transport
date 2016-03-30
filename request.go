@@ -138,8 +138,8 @@ func (r *requestImplementation) MakeRequest() (err error) {
 	if r.RequestMethod.Type() == mtd.Get().Type() {
 		url = bytes.NewBufferString(r.RequestURL)
 		if r.RequestData.Len() > 0 {
-			url.WriteString(`?`)
-			r.RequestData.WriteTo(url)
+			_, _ = url.WriteString(`?`)
+			_, _ = r.RequestData.WriteTo(url)
 		}
 		r.HTTPRequest, err = http.NewRequest(r.RequestMethod.String(), url.String(), nil)
 		return
