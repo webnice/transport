@@ -79,12 +79,12 @@ func (r *requestImplementation) ClientSource() (ret *http.Client, err error) {
 		r.HTTPRequest.SetBasicAuth(r.AuthLogin, r.AuthPassword)
 	}
 
-	r.Header().Set(`Referer`, r.RequestReferer)
-	r.Header().Set(`User-Agent`, r.RequestUserAgent)
-	r.Header().Set(`Content-Type`, r.RequestContentType)
-	r.Header().Set(`Accept`, r.RequestAccept)
-	r.Header().Set(`Accept-Encoding`, r.RequestAcceptEncoding)
-	r.Header().Set(`Accept-Language`, r.RequestAcceptLanguage)
+	r.Header().Add(`Referer`, r.RequestReferer)
+	r.Header().Add(`User-Agent`, r.RequestUserAgent)
+	r.Header().Add(`Content-Type`, r.RequestContentType)
+	r.Header().Add(`Accept`, r.RequestAccept)
+	r.Header().Add(`Accept-Encoding`, r.RequestAcceptEncoding)
+	r.Header().Add(`Accept-Language`, r.RequestAcceptLanguage)
 
 	// Установка заголовков запросу
 	r.MakeHeaders()
@@ -194,7 +194,7 @@ func (r *requestImplementation) MakeHeaders() {
 			if kv == "" {
 				continue
 			}
-			r.HTTPRequest.Header.Set(kn, kv)
+			r.HTTPRequest.Header.Add(kn, kv)
 		}
 	}
 }

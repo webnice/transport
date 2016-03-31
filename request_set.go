@@ -43,8 +43,8 @@ func (r *requestImplementation) Referer(referer string) Request {
 }
 
 // UserAgent Установка UserAgent запросу
-func (r *requestImplementation) UserAgent(userAgent string) Request {
-	r.RequestUserAgent = userAgent
+func (r *requestImplementation) UserAgent(value string) Request {
+	r.RequestUserAgent = value
 	return r
 }
 
