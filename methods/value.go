@@ -1,7 +1,5 @@
 package methods // import "github.com/webdeskltd/transport/methods"
 
-import ()
-
 // Int Return method as int constant
 func (mt *methodType) Int() int {
 	return int(mt.value)

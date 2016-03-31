@@ -1,10 +1,11 @@
 package transport // import "github.com/webdeskltd/transport"
 
 //import "github.com/webdeskltd/debug"
-import "github.com/webdeskltd/log"
+//import "github.com/webdeskltd/log"
 import (
 	"bytes"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,7 +18,7 @@ import (
 // Method Set request method
 func (r *requestImplementation) Method(m methods.Value) Request {
 	if m == nil {
-		log.Warning("Request method is nil, method not set")
+		log.Printf("Warning, request method is nil, method not set")
 		return r
 	}
 	r.RequestMethod = m
@@ -113,12 +114,30 @@ func (r *requestImplementation) Cookies(cookies []*http.Cookie) Request {
 	// Все новые с защитой от ошибки
 	for i = range cookies {
 		if cookies[i] == nil {
-			log.Warning("Cookie is nil, cookie object number %d skipped", i)
+			log.Printf("Warning, cookie is nil, cookie object number %d skipped", i)
 			continue
 		}
 		newCookies = append(newCookies, cookies[i])
 	}
 
+	return r
+}
+
+// Accept Установка Accept запросу
+func (r *requestImplementation) Accept(value string) Request {
+	r.RequestAccept = value
+	return r
+}
+
+// AcceptEncoding Установка Accept-Encoding запросу
+func (r *requestImplementation) AcceptEncoding(value string) Request {
+	r.RequestAcceptEncoding = value
+	return r
+}
+
+// AcceptLanguage Установка Accept-Language запросу
+func (r *requestImplementation) AcceptLanguage(value string) Request {
+	r.RequestAcceptLanguage = value
 	return r
 }
 

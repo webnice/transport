@@ -1,10 +1,11 @@
 package transport // import "github.com/webdeskltd/transport"
 
 //import "github.com/webdeskltd/debug"
-import "github.com/webdeskltd/log"
+//import "github.com/webdeskltd/log"
 import (
 	"os"
 	"runtime"
+	"log"
 
 	"github.com/webdeskltd/transport/methods"
 )
@@ -23,7 +24,7 @@ func destructor(obj *implementation) {
 		//log.Debug(" ---- Удаление файла: %s", obj.CollectionOfTemporaryFiles[i])
 		if obj.CollectionOfTemporaryFiles[i] != "" {
 			if err := os.Remove(obj.CollectionOfTemporaryFiles[i]); err != nil {
-				log.Warning("Error delete temporary file '%s': %s", obj.CollectionOfTemporaryFiles[i], err)
+				log.Printf("Warning, delete temporary file '%s' error: %s", obj.CollectionOfTemporaryFiles[i], err)
 			}
 		}
 	}

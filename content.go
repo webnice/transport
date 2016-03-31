@@ -1,7 +1,7 @@
 package transport // import "github.com/webdeskltd/transport"
 
 //import "github.com/webdeskltd/debug"
-import "github.com/webdeskltd/log"
+//import "github.com/webdeskltd/log"
 import (
 	"archive/tar"
 	"archive/zip"
@@ -11,6 +11,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
 	"github.com/webdeskltd/transport/charmap"
@@ -29,7 +30,7 @@ func (cnt *contentImplementation) Write(wr io.Writer) (err error) {
 	}
 	defer func() {
 		if err = rdc.Close(); err != nil {
-			log.Warning("Erro close temporary file '%s': %s", cnt.ResponseFHName, err)
+			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, err)
 		}
 	}()
 	_, err = io.Copy(wr, rdc)
@@ -196,7 +197,7 @@ func (cnt *contentImplementation) ContentUnmarshalJSON(i interface{}) (err error
 	}
 	defer func() {
 		if err = rdc.Close(); err != nil {
-			log.Warning("Erro close temporary file '%s': %s", cnt.ResponseFHName, err)
+			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, err)
 		}
 	}()
 
@@ -216,7 +217,7 @@ func (cnt *contentImplementation) ContentUnmarshalXML(i interface{}) (err error)
 	}
 	defer func() {
 		if err = rdc.Close(); err != nil {
-			log.Warning("Erro close temporary file '%s': %s", cnt.ResponseFHName, err)
+			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, err)
 		}
 	}()
 

@@ -1,53 +1,37 @@
 package transport // import "github.com/webdeskltd/transport"
 
 //import "github.com/webdeskltd/debug"
-import "github.com/webdeskltd/log"
+//import "github.com/webdeskltd/log"
 import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
+	"net/http/cookiejar"
 	"os"
 	"path"
 	"time"
 
 	"github.com/webdeskltd/transport/methods"
+
+	"golang.org/x/net/publicsuffix"
 )
 
 // Do Выполнение запроса, ожидание и получение результата
 func (r *requestImplementation) Do() (ret Response, err error) {
 	var client *http.Client
-	var i int
 
 	r.ResponseImplementation = new(responseImplementation)
 	ret = r.ResponseImplementation
 
-	// Создание запроса
-	if err = r.MakeRequest(); err != nil {
+	// Создание net/http Request и Client
+	if client, err = r.ClientSource(); err != nil {
 		r.RequestError = err
+		r.ResponseImplementation.ResponseError = err
 		return
-	}
-
-	// Авторизация
-	if r.AuthLogin != "" {
-		r.HTTPRequest.SetBasicAuth(r.AuthLogin, r.AuthPassword)
-	}
-
-	r.Header().Set(`Referer`, r.RequestReferer)
-	r.Header().Set(`User-Agent`, r.RequestUserAgent)
-	r.Header().Set(`Content-Type`, r.RequestContentType)
-
-	// Установка заголовков запросу
-	r.MakeHeaders()
-
-	// Создание клиента запроса
-	client = r.MakeHTTPClient()
-
-	// Кукисы
-	for i = range r.RequestCookies {
-		r.HTTPRequest.AddCookie(r.RequestCookies[i])
 	}
 
 	// Засекаем время запроса
@@ -70,13 +54,63 @@ func (r *requestImplementation) Do() (ret Response, err error) {
 	// Закрыти входящего потока данных по завершении функции
 	defer func() {
 		if err = r.ResponseImplementation.HTTPResponse.Body.Close(); err != nil {
-			log.Warning("Error closing the incoming data stream: %s", err.Error())
+			log.Printf("Warning, closing the incoming data stream error: %s", err.Error())
 		}
 	}()
 
 	// Загрузка данных
 	err = r.LoadData()
 
+	return
+}
+
+// ClientSource Возвращает подготовленный к запросу net/http.Client
+func (r *requestImplementation) ClientSource() (ret *http.Client, err error) {
+	var i int
+
+	// Создание запроса
+	if _, err = r.RequestSource(); err != nil {
+		r.RequestError = err
+		return
+	}
+
+	// Авторизация
+	if r.AuthLogin != "" {
+		r.HTTPRequest.SetBasicAuth(r.AuthLogin, r.AuthPassword)
+	}
+
+	r.Header().Set(`Referer`, r.RequestReferer)
+	r.Header().Set(`User-Agent`, r.RequestUserAgent)
+	r.Header().Set(`Content-Type`, r.RequestContentType)
+	r.Header().Set(`Accept`, r.RequestAccept)
+	r.Header().Set(`Accept-Encoding`, r.RequestAcceptEncoding)
+	r.Header().Set(`Accept-Language`, r.RequestAcceptLanguage)
+
+	// Установка заголовков запросу
+	r.MakeHeaders()
+
+	// Кукисы
+	for i = range r.RequestCookies {
+		r.HTTPRequest.AddCookie(r.RequestCookies[i])
+	}
+
+	// Создание клиента запроса
+	ret, err = r.MakeHTTPClient()
+
+	return
+}
+
+// RequestSource Возвращает подготовленный к запросу net/http.Request
+func (r *requestImplementation) RequestSource() (ret *http.Request, err error) {
+	if r.HTTPRequest != nil {
+		ret = r.HTTPRequest
+		return
+	}
+	err = r.MakeHTTPRequest()
+	if err != nil {
+		r.RequestError = err
+		r.ResponseImplementation.ResponseError = err
+	}
 	return
 }
 
@@ -94,7 +128,7 @@ func (r *requestImplementation) LoadData() (err error) {
 	defer func() {
 		if r.ResponseData != nil {
 			if err = r.ResponseData.Close(); err != nil {
-				log.Warning("Error closing the outgoing data stream: %s", err.Error())
+				log.Printf("Warning, closing the outgoing data stream error: %s", err.Error())
 			}
 		}
 	}()
@@ -114,7 +148,7 @@ func (r *requestImplementation) LoadData() (err error) {
 	// Проверка заявленного размера данных и загруженного
 	if r.ResponseImplementation.HTTPResponse.ContentLength != -1 &&
 		r.ResponseImplementation.ResponseContentLength != r.ResponseImplementation.HTTPResponse.ContentLength {
-		log.Warning("Content-length wrong or incomplite!")
+		log.Printf("Warning, content-length wrong or incomplite!")
 	}
 
 	// Результирующие HTTP коды ответа
@@ -124,8 +158,8 @@ func (r *requestImplementation) LoadData() (err error) {
 	return
 }
 
-// MakeRequest Создание запроса на основе метода запроса
-func (r *requestImplementation) MakeRequest() (err error) {
+// MakeHTTPRequest Создание запроса на основе метода запроса
+func (r *requestImplementation) MakeHTTPRequest() (err error) {
 	var mtd = methods.New()
 	var url *bytes.Buffer
 
@@ -165,9 +199,18 @@ func (r *requestImplementation) MakeHeaders() {
 }
 
 // MakeHTTPClient Создание HTTP Client
-func (r *requestImplementation) MakeHTTPClient() (client *http.Client) {
+func (r *requestImplementation) MakeHTTPClient() (client *http.Client, err error) {
 	var bit int
 	var tlsConfig *tls.Config
+	var jar *cookiejar.Jar
+
+	// Cookie jar
+	jar, err = cookiejar.New(&cookiejar.Options{
+		PublicSuffixList: publicsuffix.List,
+	})
+	if err != nil {
+		return
+	}
 
 	// TLS configuration
 	tlsConfig = &tls.Config{
@@ -197,6 +240,7 @@ func (r *requestImplementation) MakeHTTPClient() (client *http.Client) {
 	case 0:
 		// Таймаут = нет, Прокси = нет
 		client = &http.Client{
+			Jar: jar,
 			Transport: &http.Transport{
 				TLSClientConfig:   tlsConfig,
 				DisableKeepAlives: true,
@@ -205,6 +249,7 @@ func (r *requestImplementation) MakeHTTPClient() (client *http.Client) {
 	case 1:
 		// Таймаут = нет, Прокси = есть
 		client = &http.Client{
+			Jar: jar,
 			Transport: &http.Transport{
 				TLSClientConfig:   tlsConfig,
 				DisableKeepAlives: true,
@@ -214,6 +259,7 @@ func (r *requestImplementation) MakeHTTPClient() (client *http.Client) {
 	case 2:
 		// Таймаут = есть, Прокси = нет
 		client = &http.Client{
+			Jar: jar,
 			Transport: &http.Transport{
 				TLSClientConfig:   tlsConfig,
 				DisableKeepAlives: true,
@@ -223,6 +269,7 @@ func (r *requestImplementation) MakeHTTPClient() (client *http.Client) {
 	case 3:
 		// Таймаут = есть, Прокси = есть
 		client = &http.Client{
+			Jar: jar,
 			Transport: &http.Transport{
 				// TLSClientConfig specifies the TLS configuration to use with
 				// tls.Client. If nil, the default configuration is used.
@@ -254,7 +301,7 @@ func (r *requestImplementation) MakeFnTimeoutDialler(timeout time.Duration) func
 	return func(netw, addr string) (client net.Conn, err error) {
 		client, err = net.DialTimeout(netw, addr, time.Duration(timeout))
 		if err != nil {
-			log.Warning("Request timeout exceeded, drop connection: %v", err)
+			log.Printf("Warning, request timeout exceeded, drop connection with error: %v", err)
 			return
 		}
 		err = client.SetDeadline(time.Now().Add(timeout))

@@ -22,6 +22,9 @@ type Transport interface {
 
 // Request is an request interface
 type Request interface {
+	Accept(string) Request
+	AcceptEncoding(string) Request
+	AcceptLanguage(string) Request
 	Auth(string, string) Request
 	ContentType(string) Request
 	Cookies([]*http.Cookie) Request
@@ -38,6 +41,8 @@ type Request interface {
 	TLSVerifyOn() Request
 	TLSVerifyOff() Request
 
+	ClientSource() (*http.Client, error)
+	RequestSource() (*http.Request, error)
 	Do() (Response, error)
 	Error() (Request, error)
 	Header() HeaderInterface
@@ -97,6 +102,9 @@ type requestImplementation struct {
 	RequestReferer               string                  // Referer
 	RequestUserAgent             string                  // User-Agent
 	RequestContentType           string                  // Content-Type
+	RequestAccept                string                  // Accept
+	RequestAcceptEncoding        string                  // Accept-Encoding
+	RequestAcceptLanguage        string                  // Accept-Language
 	RequestProxyURL              *url.URL                // URL прокси сервера
 	RequestTimeOut               time.Duration           // Таймаут получения данных. Если =0 - выключен. Если >0 - полное время на всю операцию, от подключения до полечения данных
 	RequestCookies               []*http.Cookie          // Куки запроса
