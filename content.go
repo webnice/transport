@@ -6,6 +6,7 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -56,6 +57,13 @@ func (cnt *contentImplementation) ReaderCloser() (rdr io.ReadCloser, err error) 
 	// Разархивация TAR
 	if cnt.untar {
 		if tmp, err = cnt.UncompressTar(fh); err != nil {
+			return
+		}
+	}
+
+	// Разархивация GZIP
+	if cnt.ungzip {
+		if tmp, err = cnt.UncompressGzip(fh); err != nil {
 			return
 		}
 	}
@@ -123,6 +131,26 @@ func (cnt *contentImplementation) UncompressTar(fh *os.File) (rdr io.ReadCloser,
 	rdr = data.NewReadCloser(
 		tarReader,
 		fh.Close,
+	)
+
+	return
+}
+
+// UncompressGzip Uncompress content as gzip
+func (cnt *contentImplementation) UncompressGzip(fh io.ReadCloser) (rdr io.ReadCloser, err error) {
+	var gzipReader *gzip.Reader
+
+	gzipReader, err = gzip.NewReader(fh)
+	if err != nil {
+		err = fmt.Errorf("GZIP content error: %s", err.Error())
+		return
+	}
+	rdr = data.NewReadCloser(
+		gzipReader,
+		func() error {
+			_ = gzipReader.Close()
+			return fh.Close()
+		},
 	)
 
 	return
@@ -233,6 +261,7 @@ func (cnt *contentImplementation) Transform(fn TransformFunc) ContentInterface {
 		transform:      fn,
 		untar:          cnt.untar,
 		unzip:          cnt.unzip,
+		ungzip:         cnt.ungzip,
 	}
 }
 
@@ -245,6 +274,7 @@ func (cnt *contentImplementation) Untar() ContentInterface {
 		transform:      cnt.transform,
 		untar:          true,
 		unzip:          cnt.unzip,
+		ungzip:         cnt.ungzip,
 	}
 }
 
@@ -257,5 +287,19 @@ func (cnt *contentImplementation) Unzip() ContentInterface {
 		transform:      cnt.transform,
 		untar:          cnt.untar,
 		unzip:          true,
+		ungzip:         cnt.ungzip,
+	}
+}
+
+// UnGzip Разархивация контента методом GZIP
+func (cnt *contentImplementation) UnGzip() ContentInterface {
+	return &contentImplementation{
+		ResponseFHName: cnt.ResponseFHName,
+		ResponseFH:     cnt.ResponseFH,
+		transcode:      cnt.transcode,
+		transform:      cnt.transform,
+		untar:          cnt.untar,
+		unzip:          cnt.unzip,
+		ungzip:         true,
 	}
 }

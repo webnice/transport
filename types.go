@@ -79,6 +79,7 @@ type ContentInterface interface {
 	ContentUnmarshalXML(interface{}) error
 	Untar() ContentInterface
 	Unzip() ContentInterface
+	UnGzip() ContentInterface
 }
 
 // TransformFunc is an func for streaming content conversion
@@ -141,4 +142,5 @@ type contentImplementation struct {
 	transform      TransformFunc     // Функция потокового преобразования контента
 	unzip          bool              // =true - контент разархивируется методом ZIP, возвращается первый файл в архиве
 	untar          bool              // =true - контент разархивируется методом TAR, возвращается первый файл в архиве
+	ungzip         bool              // =true - контент разархивируется методом GZIP, возвращается первый файл в архиве
 }
