@@ -111,6 +111,7 @@ func (r *requestImplementation) RequestSource() (ret *http.Request, err error) {
 		r.RequestError = err
 		r.ResponseImplementation.ResponseError = err
 	}
+	ret = r.HTTPRequest
 	return
 }
 
