@@ -4,7 +4,7 @@
 
 Client for HTTP request
 
-#### Dependences:
+#### Dependencies:
 
 	- golang.org/x/text
 	- golang.org/x/net
