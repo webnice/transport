@@ -56,7 +56,11 @@ func (r *requestImplementation) ContentType(contentType string) Request {
 
 // ProxyURL Установка ProxyURL запросу
 func (r *requestImplementation) ProxyURL(proxyURL string) Request {
-	r.RequestProxyURL, r.RequestError = new(url.URL).Parse(proxyURL)
+	if proxyURL != "" {
+		r.RequestProxyURL, r.RequestError = new(url.URL).Parse(proxyURL)
+	} else {
+		r.RequestProxyURL = nil
+	}
 	return r
 }
 
