@@ -1,12 +1,12 @@
 package transport
 
 //import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v1"
+//import "gopkg.in/webnice/log.v2"
 import (
 	"net/http"
 	"time"
 
-	"github.com/webdeskltd/transport/charmap"
+	"gopkg.in/webnice/transport.v1/charmap"
 )
 
 // Response Return net/http.Response object as is

@@ -1,13 +1,13 @@
 package transport
 
 //import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v1"
+//import "gopkg.in/webnice/log.v2"
 import (
 	"os"
 	"runtime"
 	"log"
 
-	"github.com/webdeskltd/transport/methods"
+	"gopkg.in/webnice/transport.v1/methods"
 )
 
 // NewTransport Function create new transport implementation

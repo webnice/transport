@@ -1,7 +1,7 @@
 package transport
 
 //import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v1"
+//import "gopkg.in/webnice/log.v2"
 import (
 	"bytes"
 	"crypto/tls"
@@ -15,7 +15,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/webdeskltd/transport/methods"
+	"gopkg.in/webnice/transport.v1/methods"
 
 	"golang.org/x/net/publicsuffix"
 )

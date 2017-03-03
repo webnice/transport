@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/webdeskltd/transport/charmap"
-	"github.com/webdeskltd/transport/methods"
+	"gopkg.in/webnice/transport.v1/charmap"
+	"gopkg.in/webnice/transport.v1/methods"
 
 	"golang.org/x/text/encoding"
 )

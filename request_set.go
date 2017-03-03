@@ -1,7 +1,7 @@
 package transport
 
 //import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v1"
+//import "gopkg.in/webnice/log.v2"
 import (
 	"bytes"
 	"io"
@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/webdeskltd/transport/data"
-	"github.com/webdeskltd/transport/methods"
+	"gopkg.in/webnice/transport.v1/data"
+	"gopkg.in/webnice/transport.v1/methods"
 )
 
 // Method Set request method

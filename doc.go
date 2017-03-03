@@ -7,7 +7,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/webdeskltd/transport"
+	"gopkg.in/webnice/transport.v1"
 )
 
 func main() {
