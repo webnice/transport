@@ -1,7 +1,7 @@
-package transport // import "github.com/webdeskltd/transport"
+package transport
 
-//import "github.com/webdeskltd/debug"
-//import "github.com/webdeskltd/log"
+//import "gopkg.in/webnice/debug.v1"
+//import "gopkg.in/webnice/log.v1"
 import (
 	"archive/tar"
 	"archive/zip"

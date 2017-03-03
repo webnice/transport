@@ -1,4 +1,4 @@
-package methods // import "github.com/webdeskltd/transport/methods"
+package methods
 
 // Int constants as named type
 const (

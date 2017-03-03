@@ -1,4 +1,4 @@
-package transport // import "github.com/webdeskltd/transport"
+package transport
 
 import (
 	"bytes"

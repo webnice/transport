@@ -1,4 +1,4 @@
-package methods // import "github.com/webdeskltd/transport/methods"
+package methods
 
 // Int Return method as int constant
 func (mt *methodType) Int() int {

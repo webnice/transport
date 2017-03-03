@@ -1,4 +1,4 @@
-package transport // import "github.com/webdeskltd/transport"
+package transport
 
 // Add adds the key, value pair to the header.
 // It appends to any existing values associated with key.

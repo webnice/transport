@@ -1,4 +1,4 @@
-package data // import "github.com/webdeskltd/transport/data"
+package data
 
 import (
 	"io"

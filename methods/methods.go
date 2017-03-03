@@ -1,4 +1,4 @@
-package methods // import "github.com/webdeskltd/transport/methods"
+package methods
 
 // New Function create new implementation of interface
 func New() Interface {

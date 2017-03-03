@@ -2,10 +2,10 @@
 // The "Program" is all-in-one
 // This mirror golang.org/x/text/encoding/charmap library
 
-package charmap // import "github.com/webdeskltd/transport/charmap"
+package charmap
 
-//import "github.com/webdeskltd/debug"
-//import "github.com/webdeskltd/log"
+//import "gopkg.in/webnice/debug.v1"
+//import "gopkg.in/webnice/log.v1"
 import (
 	"fmt"
 	"regexp"
