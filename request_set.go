@@ -182,6 +182,7 @@ func (r *requestImplementation) DataJson(obj interface{}) Request {
 		return r
 	}
 	r.DataBytes(buf)
+	r.Header().Set(`Content-Type`, `application/json`)
 	return r
 }
 
@@ -193,6 +194,7 @@ func (r *requestImplementation) DataXml(obj interface{}) Request {
 		return r
 	}
 	r.DataBytes(buf)
+	r.Header().Set(`Content-Type`, `application/xml`)
 	return r
 }
 
