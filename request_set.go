@@ -4,6 +4,8 @@ package transport
 //import "gopkg.in/webnice/log.v2"
 import (
 	"bytes"
+	"encoding/json"
+	"encoding/xml"
 	"io"
 	"log"
 	"net/http"
@@ -169,6 +171,28 @@ func (r *requestImplementation) DataBytes(data []byte) Request {
 // Data Данные для запроса в формате ридера
 func (r *requestImplementation) Data(data *bytes.Reader) Request {
 	r.RequestData = data
+	return r
+}
+
+// DataJson Сериализация данных из объекта в JSON
+func (r *requestImplementation) DataJson(obj interface{}) Request {
+	var buf []byte
+	buf, r.RequestError = json.Marshal(obj)
+	if r.RequestError != nil {
+		return r
+	}
+	r.DataBytes(buf)
+	return r
+}
+
+// DataXml Сериализация данных из объекта в XML
+func (r *requestImplementation) DataXml(obj interface{}) Request {
+	var buf []byte
+	buf, r.RequestError = xml.Marshal(obj)
+	if r.RequestError != nil {
+		return r
+	}
+	r.DataBytes(buf)
 	return r
 }
 

@@ -164,7 +164,7 @@ func (r *requestImplementation) MakeHTTPRequest() (err error) {
 	var mtd = methods.New()
 	var url *bytes.Buffer
 
-	// Если можно исправить ошибку самостоятельно то надо это делать
+	// Если можно исправить ошибку самостоятельно...
 	if r.RequestData == nil {
 		r.RequestData = bytes.NewReader([]byte{})
 	}

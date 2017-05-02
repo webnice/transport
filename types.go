@@ -31,6 +31,10 @@ type Request interface {
 	DataString(string) Request
 	DataBytes([]byte) Request
 	Data(*bytes.Reader) Request
+	// DataJson Сериализация данных из объекта в JSON
+	DataJson(object interface{}) Request
+	// DataXml Сериализация данных из объекта в XML
+	DataXml(object interface{}) Request
 	Method(methods.Value) Request
 	ProxyURL(string) Request
 	Referer(string) Request
