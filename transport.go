@@ -3,9 +3,9 @@ package transport
 //import "gopkg.in/webnice/debug.v1"
 //import "gopkg.in/webnice/log.v2"
 import (
+	"log"
 	"os"
 	"runtime"
-	"log"
 
 	"gopkg.in/webnice/transport.v1/methods"
 )
@@ -16,6 +16,9 @@ func NewTransport() Transport {
 	runtime.SetFinalizer(obj, destructor)
 	return obj
 }
+
+// NewMethod Function create new methods implementation and returns interface
+func NewMethod() methods.Interface { return methods.New() }
 
 // destructor Вызывается при уничтожении объекта
 func destructor(obj *implementation) {
@@ -31,9 +34,7 @@ func destructor(obj *implementation) {
 }
 
 // Method Создание нового объекта метода и возврат интерфейса к его реализации
-func (t *implementation) Method() methods.Interface {
-	return methods.New()
-}
+func (t *implementation) Method() methods.Interface { return methods.New() }
 
 // TemporaryFile Вызов коллекционирует временные файлы, которые необходимо удалить при уничтожении объекта
 func (t *implementation) TemporaryFile(fileName string) {
