@@ -41,14 +41,32 @@ type methodType struct {
 
 // Interface is an methods interface
 type Interface interface {
+	// Options Return HTTP method OPTIONS
 	Options() Value
+
+	// Get Return HTTP method GET
 	Get() Value
+
+	// Head Return HTTP method GET
 	Head() Value
+
+	// Post Return HTTP method POST
 	Post() Value
+
+	// Put Return HTTP method PUT
 	Put() Value
+
+	// Delete Return HTTP method DELETE
 	Delete() Value
+
+	// Trace Return HTTP method TRACE
 	Trace() Value
+
+	// Connect Return HTTP method CONNECT
 	Connect() Value
+
+	// Parse string and return value interface
+	Parse(inp string) Value
 }
 
 // Implementation is an methods implementation
