@@ -1,5 +1,9 @@
 package methods
 
+import (
+	"strings"
+)
+
 // New Function create new implementation of interface
 func New() Interface {
 	return new(Implementation)
@@ -43,4 +47,25 @@ func (m *Implementation) Trace() Value {
 // Connect Return HTTP method CONNECT
 func (m *Implementation) Connect() Value {
 	return &methodType{connectMethod}
+}
+
+// Parse string and return interface
+func (m *Implementation) Parse(inp string) Value {
+	var tmp string
+	var key Type
+	var ret *methodType
+
+	tmp = strings.ToUpper(inp)
+	for key = range maps {
+		if maps[key] == tmp {
+			ret = &methodType{key}
+		}
+	}
+
+	return ret
+}
+
+// Parse string and return interface
+func Parse(inp string) Value {
+	return new(Implementation).Parse(inp)
 }
