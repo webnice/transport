@@ -25,15 +25,21 @@ import (
 func (cnt *contentImplementation) Write(wr io.Writer) (err error) {
 	var rdc io.ReadCloser
 
-	if rdc, err = cnt.ReaderCloser(); err != nil {
+	if rdc, err = cnt.ReaderCloser(); err == io.EOF {
+		err = nil
+		return
+	} else if err != nil {
 		return
 	}
 	defer func() {
-		if err = rdc.Close(); err != nil {
-			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, err)
+		if e := rdc.Close(); e != nil {
+			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, e)
 		}
 	}()
-	_, err = io.Copy(wr, rdc)
+	if _, err = io.Copy(wr, rdc); err == io.EOF {
+		err = nil
+	}
+
 	return
 }
 
@@ -192,12 +198,15 @@ func (cnt *contentImplementation) ContentUnmarshalJSON(i interface{}) (err error
 	var rdc io.ReadCloser
 	var decoder *json.Decoder
 
-	if rdc, err = cnt.ReaderCloser(); err != nil {
+	if rdc, err = cnt.ReaderCloser(); err == io.EOF {
+		err = nil
+		return
+	} else if err != nil {
 		return
 	}
 	defer func() {
-		if err = rdc.Close(); err != nil {
-			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, err)
+		if e := rdc.Close(); e != nil {
+			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, e)
 		}
 	}()
 
@@ -212,12 +221,15 @@ func (cnt *contentImplementation) ContentUnmarshalXML(i interface{}) (err error)
 	var rdc io.ReadCloser
 	var decoder *xml.Decoder
 
-	if rdc, err = cnt.ReaderCloser(); err != nil {
+	if rdc, err = cnt.ReaderCloser(); err == io.EOF {
+		err = nil
+		return
+	} else if err != nil {
 		return
 	}
 	defer func() {
-		if err = rdc.Close(); err != nil {
-			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, err)
+		if e := rdc.Close(); e != nil {
+			log.Printf("Warning, close temporary file '%s' error: %s", cnt.ResponseFHName, e)
 		}
 	}()
 
