@@ -271,6 +271,7 @@ func (cm *implementation) FindByName(name string) (ret encoding.Encoding) {
 	var sm, nm string
 	var item encoding.Encoding
 	var i int
+
 	sm = rexReplaceCodepageName.ReplaceAllString(strings.ToLower(name), ``)
 	for i = range charmap.All {
 		item = charmap.All[i]
@@ -279,5 +280,6 @@ func (cm *implementation) FindByName(name string) (ret encoding.Encoding) {
 			ret = item
 		}
 	}
+
 	return
 }

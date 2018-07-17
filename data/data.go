@@ -1,19 +1,38 @@
 package data
 
+//import "gopkg.in/webnice/debug.v1"
+//import "gopkg.in/webnice/log.v2"
 import (
+	"bytes"
 	"io"
+	"os"
 )
 
 // WriteCloser is an interface
 type WriteCloser interface {
-	Write([]byte) (int, error)
+	Write(p []byte) (int, error)
 	Close() error
 }
 
 // ReadCloser is an interface
 type ReadCloser interface {
-	Read([]byte) (int, error)
+	Read(p []byte) (int, error)
 	Close() error
+}
+
+// ReadAtSeekerWriteToCloser is an interface
+type ReadAtSeekerWriteToCloser interface {
+	io.Seeker
+	io.Closer
+	io.Reader
+	io.ReaderAt
+	io.WriterTo
+
+	// Size is an size of content
+	Size() int64
+
+	// Done Completion of work with data
+	Done()
 }
 
 // writeCloserImplementation is an implementation
@@ -28,38 +47,8 @@ type readCloserImplementation struct {
 	closer  func() error
 }
 
-// NewWriteCloser Создание нового объекта на основе io.Writer
-func NewWriteCloser(w io.Writer) WriteCloser {
-	return &writeCloserImplementation{essence: w}
-}
-
-// NewReadCloser Создание нового объекта на основе io.Reader
-func NewReadCloser(w io.Reader, fn func() error) ReadCloser {
-	return &readCloserImplementation{essence: w, closer: fn}
-}
-
-// Write Реализация Writer
-func (wr *writeCloserImplementation) Write(p []byte) (int, error) {
-	return wr.essence.Write(p)
-}
-
-// Close Реализация Close
-func (wr *writeCloserImplementation) Close() error {
-	if wr.closer != nil {
-		return wr.closer()
-	}
-	return nil
-}
-
-// Read Реализация Writer
-func (rd *readCloserImplementation) Read(p []byte) (int, error) {
-	return rd.essence.Read(p)
-}
-
-// Close Реализация Close
-func (rd *readCloserImplementation) Close() error {
-	if rd.closer != nil {
-		return rd.closer()
-	}
-	return nil
+// readAtSeekerWriteToCloserImplementation is an implementation
+type readAtSeekerWriteToCloserImplementation struct {
+	contentData *bytes.Reader // Контент в памяти
+	contentFh   *os.File      // Контент в файле
 }

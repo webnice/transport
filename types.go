@@ -1,158 +1,68 @@
 package transport
 
+//import "gopkg.in/webnice/debug.v1"
+//import "gopkg.in/webnice/log.v2"
 import (
-	"bytes"
-	"io"
+	"context"
+	"crypto/tls"
 	"net/http"
 	"net/url"
-	"os"
+	"sync"
+	"sync/atomic"
 	"time"
 
-	"gopkg.in/webnice/transport.v1/charmap"
-	"gopkg.in/webnice/transport.v1/methods"
-
-	"golang.org/x/text/encoding"
+	"gopkg.in/webnice/transport.v2/methods"
+	"gopkg.in/webnice/transport.v2/request"
 )
 
-// Transport is an interface
-type Transport interface {
-	Method() methods.Interface
-	NewRequest(method methods.Value) Request
-}
+const (
+	defaultRequestPoolSize               = uint16(1)        // Specifies a number of workers in the query pool
+	defaultDialContextTimeout            = time.Duration(0) // Is the maximum amount of time a dial will wait for a connect to complete. The default is no timeout
+	defaultDialContextKeepAlive          = 30 * time.Second // Specifies the keep-alive period for an active network connection
+	defaultMaximumIdleConnections        = 100              // Controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit
+	defaultMaximumIdleConnectionsPerHost = 10               // if non-zero, controls the maximum idle (keep-alive) connections to keep per-host
+	defaultIdleConnectionTimeout         = 90 * time.Second // Controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit
+	defaultTLSHandshakeTimeout           = 10 * time.Second // Specifies the maximum amount of time waiting to wait for a TLS handshake. Zero means no timeout
+	defaultTLSInsecureSkipVerify         = false            // Enables skip verify TLS certificate
+	defaultDialContextDualStack          = true             // Enables RFC 6555-compliant "Happy Eyeballs" dialing when the network is "tcp" and the host in the address parameter resolves to both IPv4 and IPv6 addresses
+	requestChanBuffer                    = int(1000)        // Размер буфера канала задач
+)
 
-// Request is an request interface
-type Request interface {
-	Accept(string) Request
-	AcceptEncoding(string) Request
-	AcceptLanguage(string) Request
-	Auth(string, string) Request
-	ContentType(string) Request
-	Cookies([]*http.Cookie) Request
-	DataString(string) Request
-	DataBytes([]byte) Request
-	Data(*bytes.Reader) Request
-	// DataJson Сериализация данных из объекта в JSON
-	DataJson(object interface{}) Request
-	// DataXml Сериализация данных из объекта в XML
-	DataXml(object interface{}) Request
-	Method(methods.Value) Request
-	ProxyURL(string) Request
-	Referer(string) Request
-	TimeOut(time.Duration) Request
-	UserAgent(string) Request
-	URL(string) Request
-	Response(io.Writer) Request
-	TLSVerifyOn() Request
-	TLSVerifyOff() Request
+// ProxyFunc Is an a function to return a proxy for a given Request
+type ProxyFunc func(*http.Request) (*url.URL, error)
 
-	ClientSource() (*http.Client, error)
-	RequestSource() (*http.Request, error)
-	Do() (Response, error)
-	Error() (Request, error)
-	Header() HeaderInterface
-}
+// ErrorFunc Is an a client error retrieval function
+type ErrorFunc func(err error)
 
-// Response is an response result interface
-type Response interface {
-	Content() ContentInterface
-	ContentLength() int64
-	Cookies() []*http.Cookie
-	Error() error
-	Header() HeaderInterface
-	Latency() time.Duration
-	LatencyData() time.Duration
-	Response() *http.Response
-	StatusCode() int
-	Status() string
-	Charmap() charmap.Charmap
-}
+// DebugFunc Is an a function for debug request/response data
+type DebugFunc func(data []byte)
 
-// HeaderInterface is an requestHeadersImplementation interface
-type HeaderInterface interface {
-	Add(string, string)
-	Del(string)
-	Get(string) string
-	Set(string, string)
-	Names() []string
-}
-
-// ContentInterface is an contentImplementation interface
-type ContentInterface interface {
-	Transcode(encoding.Encoding) ContentInterface
-	Transform(TransformFunc) ContentInterface
-	String() (string, error)
-	Bytes() ([]byte, error)
-	ReaderCloser() (io.ReadCloser, error)
-	Write(io.Writer) error
-	ContentUnmarshalJSON(interface{}) error
-	ContentUnmarshalXML(interface{}) error
-	Untar() ContentInterface
-	Unzip() ContentInterface
-	UnGzip() ContentInterface
-}
-
-// TransformFunc is an func for streaming content conversion
-type TransformFunc func(io.Reader) (io.Reader, error)
-
-// implementation is an implementation
-type implementation struct {
-	CollectionOfTemporaryFiles []string
-}
-
-// requestImplementation is an Request implementation
-type requestImplementation struct {
-	RequestMethod                methods.Value           // Метод запроса данных
-	RequestURL                   string                  // Запрашиваемый URL без данных
-	RequestReferer               string                  // Referer
-	RequestUserAgent             string                  // User-Agent
-	RequestContentType           string                  // Content-Type
-	RequestAccept                string                  // Accept
-	RequestAcceptEncoding        string                  // Accept-Encoding
-	RequestAcceptLanguage        string                  // Accept-Language
-	RequestProxyURL              *url.URL                // URL прокси сервера
-	RequestTimeOut               time.Duration           // Таймаут получения данных. Если =0 - выключен. Если >0 - полное время на всю операцию, от подключения до полечения данных
-	RequestCookies               []*http.Cookie          // Куки запроса
-	AuthLogin                    string                  // Логин для авторизации, если не пустой то производится авторизация
-	AuthPassword                 string                  // Пароль для авторизации
-	RequestDataString            string                  // Данные для запроса в формате строки
-	RequestDataBytes             []byte                  // Данные для запроса в формате среза байт
-	RequestData                  *bytes.Reader           // Отправляемые данные
-	RequestHeaders               *headerImplementation   // Заголовки запроса
-	RequestError                 error                   // Ошибка
-	RequestTLSSkipVerify         bool                    // Проверка подписи сертификата SSL/TLS. =true - проверка отключена, =false - проверка включена (по умолчанию)
-	ResponseImplementation       *responseImplementation // Объект результата запроса
-	HTTPRequest                  *http.Request           // Объект net/http запроса
-	collectionOfTemporaryFilesFn func(string)            // Функция коллекционирует временные файлы, которые необходимо удалить при уничтожении объекта
-	ResponseData                 io.WriteCloser          // Исходящий поток для загружаемых данных, если указан, то временный файл не создаётся а данные пишутся во writer
-}
-
-// headerImplementation is an RequestHeaders and ResponseHeaders implementation
-type headerImplementation struct {
-	Header http.Header
-}
-
-// responseImplementation is an Response implementation
-type responseImplementation struct {
-	HTTPResponse          *http.Response // Объект htp/http ответа на запрос
-	ResponseBeginRequest  time.Time      // Дата и время начала запроса
-	ResponseLatency       time.Duration  // Скорость ответа сервера (без передачи ответа на запрос)
-	ResponseLatencyData   time.Duration  // Скорость ответа с передачей данных
-	ResponseError         error          // Ошибка
-	ResponseContentLength int64          // Размер загруженного контента
-	ResponseCode          int            // HTTP код ответа
-	ResponseStatus        string         // HTTP код ответа в строковом виде
-	ResponseFHEnable      bool           // =true - открыт временный файл, =false - данные пишутся в исходящий поток, временного файла нет
-	ResponseFHName        string         // Имя временного файла
-	ResponseFH            *os.File       // Временный файл для получаемых данных
-}
-
-// contentImplementation is an Content implementation
-type contentImplementation struct {
-	ResponseFHName string            // Имя временного файла
-	ResponseFH     *os.File          // Временный файл для получаемых данных
-	transcode      encoding.Encoding // Если не равно nil, то контент перекодируется на лету из указанной кодировки
-	transform      TransformFunc     // Функция потокового преобразования контента
-	unzip          bool              // =true - контент разархивируется методом ZIP, возвращается первый файл в архиве
-	untar          bool              // =true - контент разархивируется методом TAR, возвращается первый файл в архиве
-	ungzip         bool              // =true - контент разархивируется методом GZIP, возвращается первый файл в архиве
+// is an implementation of transport
+type impl struct {
+	client                        *http.Client           // Объект http клиента
+	transport                     *http.Transport        // Объект http транспорта
+	cookieJar                     http.CookieJar         // Интерфейс CookieJar
+	requestChan                   chan request.Interface // Канал задач запросов
+	requestPoolLock               *sync.Mutex            // Лок от двойного запуска
+	requestPoolCancelFunc         []context.CancelFunc   // Массив функций остановки пула воркеров
+	requestPoolStarted            *atomic.Value          // =true Пул воркеров запущен
+	requestPoolDone               *sync.WaitGroup        // WaitGroup для полной корректной остановки пула
+	err                           error                  // Latest error
+	errFunc                       ErrorFunc              // Колбэк функция получения ошибок на стороне http клиента
+	debugFunc                     DebugFunc              // Is an a function for debug request/response data. If not nil - debug mode is enabled. If nil, debug mode is disbled
+	methods                       methods.Interface      // Query Methods Interface
+	requestPoolInterface          request.Pool           // Query objects pool interface
+	requestPoolSize               uint16                 // Specifies a number of workers in the query pool
+	proxy                         ProxyFunc              // Specifies a function to return a proxy for a given Request
+	proxyConnectHeader            http.Header            // Optionally specifies headers to send to proxies during CONNECT requests
+	dialContextTimeout            time.Duration          // Is the maximum amount of time a dial will wait for a connect to complete. The default is no timeout
+	dialContextKeepAlive          time.Duration          // Specifies the keep-alive period for an active network connection. If zero, keep-alives are not enabled
+	maximumIdleConnections        uint                   // Controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit
+	maximumIdleConnectionsPerHost uint                   // If non-zero, controls the maximum idle (keep-alive) connections to keep per-host
+	idleConnectionTimeout         time.Duration          // Is the maximum amount of time an idle (keep-alive) connection will remain idle before closing itself. Zero means no limit
+	tlsHandshakeTimeout           time.Duration          // Specifies the maximum amount of time waiting to wait for a TLS handshake. Zero means no timeout
+	tlsInsecureSkipVerify         bool                   // Enables skip verify TLS certificate
+	tlsClientConfig               *tls.Config            // Specifies the TLS configuration to use with tls.Client. If nil, the default configuration is used. If non-nil, HTTP/2 support may not be enabled by default.
+	dialContextDualStack          bool                   // Enables RFC 6555-compliant "Happy Eyeballs" dialing when the network is "tcp" and the host in the address parameter resolves to both IPv4 and IPv6 addresses
+	totalTimeout                  time.Duration          // Specifies a time limit for requests made by this Client. The timeout includes connection time, any redirects, and reading the response body. A Timeout of zero means no timeout
 }

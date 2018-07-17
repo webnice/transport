@@ -6,51 +6,51 @@ import (
 
 // New Function create new implementation of interface
 func New() Interface {
-	return new(Implementation)
+	return new(impl)
 }
 
 // Options Return HTTP method OPTIONS
-func (m *Implementation) Options() Value {
+func (m *impl) Options() Value {
 	return &methodType{optionsMethod}
 }
 
 // Get Return HTTP method GET
-func (m *Implementation) Get() Value {
+func (m *impl) Get() Value {
 	return &methodType{getMethod}
 }
 
-// Head Return HTTP method GET
-func (m *Implementation) Head() Value {
+// Head Return HTTP method HEAD
+func (m *impl) Head() Value {
 	return &methodType{headMethod}
 }
 
 // Post Return HTTP method POST
-func (m *Implementation) Post() Value {
+func (m *impl) Post() Value {
 	return &methodType{postMethod}
 }
 
 // Put Return HTTP method PUT
-func (m *Implementation) Put() Value {
+func (m *impl) Put() Value {
 	return &methodType{putMethod}
 }
 
 // Delete Return HTTP method DELETE
-func (m *Implementation) Delete() Value {
+func (m *impl) Delete() Value {
 	return &methodType{deleteMethod}
 }
 
 // Trace Return HTTP method TRACE
-func (m *Implementation) Trace() Value {
+func (m *impl) Trace() Value {
 	return &methodType{traceMethod}
 }
 
 // Connect Return HTTP method CONNECT
-func (m *Implementation) Connect() Value {
+func (m *impl) Connect() Value {
 	return &methodType{connectMethod}
 }
 
-// Parse string and return interface
-func (m *Implementation) Parse(inp string) Value {
+// Parse string and return method interface
+func (m *impl) Parse(inp string) Value {
 	var tmp string
 	var key Type
 	var ret *methodType
@@ -59,6 +59,7 @@ func (m *Implementation) Parse(inp string) Value {
 	for key = range maps {
 		if maps[key] == tmp {
 			ret = &methodType{key}
+			break
 		}
 	}
 
@@ -67,5 +68,5 @@ func (m *Implementation) Parse(inp string) Value {
 
 // Parse string and return interface
 func Parse(inp string) Value {
-	return new(Implementation).Parse(inp)
+	return New().Parse(inp)
 }

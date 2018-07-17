@@ -2,14 +2,14 @@ package methods
 
 // Int constants as named type
 const (
-	optionsMethod Type = 1 // OPTIONS
-	getMethod     Type = 2 // GET
-	headMethod    Type = 3 // HEAD
-	postMethod    Type = 4 // POST
-	putMethod     Type = 5 // PUT
-	deleteMethod  Type = 6 // DELETE
-	traceMethod   Type = 7 // TRACE
-	connectMethod Type = 8 // CONNECT
+	optionsMethod Type = iota + 1 // 1 OPTIONS
+	getMethod                     // 2 GET
+	headMethod                    // 3 HEAD
+	postMethod                    // 4 POST
+	putMethod                     // 5 PUT
+	deleteMethod                  // 6 DELETE
+	traceMethod                   // 7 TRACE
+	connectMethod                 // 8 CONNECT
 )
 
 // maps String constants
@@ -29,9 +29,17 @@ type Type int
 
 // Value Value is an interface of method
 type Value interface {
+	// Int Return method as int constant
 	Int() int
+
+	// String Return method as string constant
 	String() string
+
+	// Type Return method as Type constant
 	Type() Type
+
+	// EqualFold Reports whether s, are equal value of method with case-folding
+	EqualFold(s string) bool
 }
 
 // methodType is an implementation of Value
@@ -69,6 +77,6 @@ type Interface interface {
 	Parse(inp string) Value
 }
 
-// Implementation is an methods implementation
-type Implementation struct {
+// is an methods implementation
+type impl struct {
 }
