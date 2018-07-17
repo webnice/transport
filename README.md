@@ -7,7 +7,7 @@ Client for HTTP request
 #### Dependencies
 
 	- golang.org/x/text
-	- golang.org/x/net
+	- golang.org/x/tools
 
 #### Install
 ```bash
