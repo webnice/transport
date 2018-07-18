@@ -5,7 +5,6 @@ package response
 import (
 	"bytes"
 	"os"
-	"runtime"
 	"sync"
 	"time"
 
@@ -26,14 +25,7 @@ func (rsp *impl) NewResponseItem() interface{} {
 		contentData: &bytes.Buffer{},
 		charmap:     charmap.NewCharmap(),
 	}
-	runtime.SetFinalizer(ret, rsp.DestructorResponseItem)
 	return ret
-}
-
-// DestructorResponseItem Деструктор объекта Response
-func (rsp *impl) DestructorResponseItem(req *Response) {
-
-	// Удаление временных файлов
 }
 
 // ResponseGet Извлечение из pool нового элемента Response

@@ -5,7 +5,6 @@ package request
 import (
 	"bytes"
 	"context"
-	"runtime"
 	"sync"
 
 	"gopkg.in/webnice/transport.v2/header"
@@ -33,13 +32,7 @@ func (rqt *impl) NewRequestItem() interface{} {
 		response:    rqt.responsePool.ResponseGet(),
 	}
 	req.context, req.contextCancelFunc = context.WithCancel(context.Background())
-	runtime.SetFinalizer(req, rqt.DestructorRequestItem)
 	return req
-}
-
-// DestructorRequestItem Деструктор объекта Request
-func (rqt *impl) DestructorRequestItem(req *Request) {
-	rqt.requestPool = nil
 }
 
 // RequestGet Извлечение из pool нового элемента Request

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"runtime"
 	runtimeDebug "runtime/debug"
 	"sync"
 	"sync/atomic"
@@ -27,12 +26,7 @@ func New() Interface {
 	trt.requestPoolStarted.Store(false)
 	trt.requestPoolDone = new(sync.WaitGroup)
 	setDefaults(trt)
-	runtime.SetFinalizer(trt, destructor)
 	return trt
-}
-
-// destructor Вызывается при уничтожении объекта
-func destructor(trt *impl) {
 }
 
 // Error Return latest error
