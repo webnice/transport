@@ -262,3 +262,10 @@ func (cnt *impl) UnGzip() Interface {
 		ungzip:    true,
 	}
 }
+
+// BackToBegin Returns the content reading pointer to the beginning
+// This allows you to repeat the work with content
+func (cnt *impl) BackToBegin() (err error) {
+	_, err = cnt.esence.Seek(0, io.SeekStart)
+	return
+}

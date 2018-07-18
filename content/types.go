@@ -35,6 +35,10 @@ type Interface interface {
 	Untar() Interface
 	Unzip() Interface
 	UnGzip() Interface
+
+	// BackToBegin Returns the content reading pointer to the beginning
+	// This allows you to repeat the work with content
+	BackToBegin() error
 }
 
 // TransformFunc is an func for streaming content conversion
