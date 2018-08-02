@@ -239,6 +239,9 @@ func (r *Request) Do(client *http.Client) error {
 			r.debugRequest(buf)
 		}
 	}
+	if r.response == nil {
+		return fmt.Errorf("Request failed, response object is nil")
+	}
 	// Загрузка всех входящих данных
 	if r.err = r.response.Load(); r.err != nil {
 		return r.err

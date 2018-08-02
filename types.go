@@ -5,6 +5,7 @@ package transport
 import (
 	"context"
 	"crypto/tls"
+	"net"
 	"net/http"
 	"net/url"
 	"sync"
@@ -37,6 +38,12 @@ type ErrorFunc func(err error)
 // DebugFunc Is an a function for debug request/response data
 type DebugFunc func(data []byte)
 
+// DialTLSFunc Type of custom dial function for creating TLS connections for non-proxied HTTPS requests
+type DialTLSFunc func(network, addr string) (net.Conn, error)
+
+// DialContextFunc Type of custom dial function for creating unencrypted TCP connections
+type DialContextFunc func(ctx context.Context, network, addr string) (net.Conn, error)
+
 // is an implementation of transport
 type impl struct {
 	client                        *http.Client           // Объект http клиента
@@ -62,7 +69,9 @@ type impl struct {
 	idleConnectionTimeout         time.Duration          // Is the maximum amount of time an idle (keep-alive) connection will remain idle before closing itself. Zero means no limit
 	tlsHandshakeTimeout           time.Duration          // Specifies the maximum amount of time waiting to wait for a TLS handshake. Zero means no timeout
 	tlsInsecureSkipVerify         bool                   // Enables skip verify TLS certificate
-	tlsClientConfig               *tls.Config            // Specifies the TLS configuration to use with tls.Client. If nil, the default configuration is used. If non-nil, HTTP/2 support may not be enabled by default.
+	tlsClientConfig               *tls.Config            // Specifies the TLS configuration to use with tls.Client. If nil, the default configuration is used. If non-nil, HTTP/2 support may not be enabled by default
+	tlsDialFunc                   DialTLSFunc            // Custom dial function for creating TLS connections for non-proxied HTTPS requests
+	dialContextCustomFunc         DialContextFunc        // Custom dial function for creating unencrypted TCP connections
 	dialContextDualStack          bool                   // Enables RFC 6555-compliant "Happy Eyeballs" dialing when the network is "tcp" and the host in the address parameter resolves to both IPv4 and IPv6 addresses
 	totalTimeout                  time.Duration          // Specifies a time limit for requests made by this Client. The timeout includes connection time, any redirects, and reading the response body. A Timeout of zero means no timeout
 }

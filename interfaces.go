@@ -43,11 +43,17 @@ type Interface interface {
 	// TLSHandshakeTimeout Specifies the maximum amount of time waiting to wait for a TLS handshake. Zero means no timeout
 	TLSHandshakeTimeout(t time.Duration) Interface
 
-	// TLSSkipVerify Enables skip verify TLS certificate
+	// TLSSkipVerify Enables skip verify TLS certificate for all requests
 	TLSSkipVerify(v bool) Interface
 
 	// TLSClientConfig Specifies the TLS configuration to use with tls.Client.
 	TLSClientConfig(v *tls.Config) Interface
+
+	// DialTLS Specifies an custom dial function for creating TLS connections for non-proxied HTTPS requests
+	DialTLS(fn DialTLSFunc) Interface
+
+	// DialContextCustomFunc Specifies an custom dial function for creating unencrypted TCP connections
+	DialContextCustomFunc(fn DialContextFunc) Interface
 
 	// DualStack Enables RFC 6555-compliant "Happy Eyeballs" dialing when the network is "tcp" and the host in the address parameter resolves to both IPv4 and IPv6 addresses
 	DualStack(v bool) Interface

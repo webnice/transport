@@ -76,7 +76,7 @@ func (trt *impl) TLSHandshakeTimeout(t time.Duration) Interface {
 	return trt
 }
 
-// TLSSkipVerify Enables skip verify TLS certificate
+// TLSSkipVerify Enables skip verify TLS certificate for all requests
 func (trt *impl) TLSSkipVerify(v bool) Interface {
 	trt.tlsInsecureSkipVerify = v
 	return trt
@@ -87,6 +87,18 @@ func (trt *impl) TLSSkipVerify(v bool) Interface {
 // If non-nil, HTTP/2 support may not be enabled by default
 func (trt *impl) TLSClientConfig(v *tls.Config) Interface {
 	trt.tlsClientConfig = v
+	return trt
+}
+
+// DialTLS Specifies an custom dial function for creating TLS connections for non-proxied HTTPS requests
+func (trt *impl) DialTLS(fn DialTLSFunc) Interface {
+	trt.tlsDialFunc = fn
+	return trt
+}
+
+// DialContextCustomFunc Specifies an custom dial function for creating unencrypted TCP connections
+func (trt *impl) DialContextCustomFunc(fn DialContextFunc) Interface {
+	trt.dialContextCustomFunc = fn
 	return trt
 }
 

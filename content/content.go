@@ -24,7 +24,7 @@ func New(d data.ReadAtSeekerWriteToCloser) Interface { return &impl{esence: d} }
 
 // WriteTo is an io.WriterTo interface implementation
 func (cnt *impl) WriteTo(w io.Writer) (n int64, err error) {
-	if err = cnt.ReaderCloser(); err != nil {
+	if err = cnt.ReaderCloser(); err != nil || cnt.rdc == nil {
 		return
 	}
 	n, err = io.Copy(w, cnt.rdc)
@@ -53,7 +53,7 @@ func (cnt *impl) ReaderCloser() (err error) {
 		}
 	}
 	// Перекодирование контента если установлен транскодер
-	if cnt.transcode != nil {
+	if cnt.transcode != nil && cnt.esence != nil {
 		// Создание ReadCloser из Reader + func Close
 		cnt.rdc = data.NewReadCloser(
 			transform.NewReader(cnt.esence, cnt.transcode.NewDecoder()),
@@ -63,7 +63,7 @@ func (cnt *impl) ReaderCloser() (err error) {
 		cnt.rdc = cnt.esence
 	}
 	// Преобразование контента если установлен трансформер
-	if cnt.transform != nil {
+	if cnt.transform != nil && cnt.rdc != nil {
 		var newReader io.Reader
 		newReader, err = cnt.transform(cnt.rdc)
 		cnt.rdc = data.NewReadCloser(newReader, cnt.rdc.Close)
@@ -266,6 +266,10 @@ func (cnt *impl) UnGzip() Interface {
 // BackToBegin Returns the content reading pointer to the beginning
 // This allows you to repeat the work with content
 func (cnt *impl) BackToBegin() (err error) {
+	if cnt.esence == nil {
+		err = fmt.Errorf("Request failed, response object is nil")
+		return
+	}
 	_, err = cnt.esence.Seek(0, io.SeekStart)
 	return
 }

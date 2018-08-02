@@ -66,18 +66,22 @@ func (trt *impl) Client() (ret *http.Client) {
 	// Создание объекта транспорта
 	if trt.transport == nil {
 		trt.transport = &http.Transport{
-			Proxy:              trt.proxy,
-			ProxyConnectHeader: trt.proxyConnectHeader,
-			DialContext: (&net.Dialer{
-				Timeout:   trt.dialContextTimeout,
-				KeepAlive: trt.dialContextKeepAlive,
-				DualStack: trt.dialContextDualStack,
-			}).DialContext,
+			Proxy:               trt.proxy,
+			ProxyConnectHeader:  trt.proxyConnectHeader,
 			MaxIdleConns:        int(trt.maximumIdleConnections),
 			MaxIdleConnsPerHost: int(trt.maximumIdleConnectionsPerHost),
 			IdleConnTimeout:     trt.idleConnectionTimeout,
 			TLSHandshakeTimeout: trt.tlsHandshakeTimeout,
 			TLSClientConfig:     trt.tlsClientConfig,
+			DialTLS:             trt.tlsDialFunc,
+			DialContext:         trt.dialContextCustomFunc,
+		}
+		if trt.dialContextCustomFunc == nil {
+			trt.transport.DialContext = (&net.Dialer{
+				Timeout:   trt.dialContextTimeout,
+				KeepAlive: trt.dialContextKeepAlive,
+				DualStack: trt.dialContextDualStack,
+			}).DialContext
 		}
 	}
 	// Создание клиента http
