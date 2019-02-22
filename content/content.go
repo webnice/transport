@@ -59,7 +59,7 @@ func (cnt *impl) ReaderCloser() (err error) {
 			transform.NewReader(cnt.esence, cnt.transcode.NewDecoder()),
 			cnt.esence.Close,
 		)
-	} else {
+	} else if cnt.rdc == nil && cnt.esence != nil {
 		cnt.rdc = cnt.esence
 	}
 	// Преобразование контента если установлен трансформер
