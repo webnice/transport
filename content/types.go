@@ -32,10 +32,17 @@ type Interface interface {
 	// UnmarshalXML Decoding content like XML
 	UnmarshalXML(o interface{}) error
 
-	Untar() Interface
-	Unzip() Interface
+	// UnTar Разархивация контента методом TAR
+	UnTar() Interface
+
+	// UnZip Разархивация контента методом ZIP (извлекается только первый файл)
+	UnZip() Interface
+
+	// UnGzip Разархивация контента методом GZIP
 	UnGzip() Interface
-	UnDeflate() Interface
+
+	// UnFlate Разархивация контента методом FLATE
+	UnFlate() Interface
 
 	// BackToBegin Returns the content reading pointer to the beginning
 	// This allows you to repeat the work with content

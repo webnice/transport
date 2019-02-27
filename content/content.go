@@ -250,8 +250,8 @@ func (cnt *impl) Transform(fn TransformFunc) Interface {
 	}
 }
 
-// Unzip Разархивация контента методом TAR
-func (cnt *impl) Untar() Interface {
+// UnTar Разархивация контента методом TAR
+func (cnt *impl) UnTar() Interface {
 	return &impl{
 		esence:    cnt.esence,
 		transcode: cnt.transcode,
@@ -263,8 +263,8 @@ func (cnt *impl) Untar() Interface {
 	}
 }
 
-// Unzip Разархивация контента методом ZIP (извлекается только первый файл)
-func (cnt *impl) Unzip() Interface {
+// UnZip Разархивация контента методом ZIP (извлекается только первый файл)
+func (cnt *impl) UnZip() Interface {
 	return &impl{
 		esence:    cnt.esence,
 		transcode: cnt.transcode,
@@ -289,8 +289,8 @@ func (cnt *impl) UnGzip() Interface {
 	}
 }
 
-// UnDeflate Разархивация контента методом DEFLATE
-func (cnt *impl) UnDeflate() Interface {
+// UnFlate Разархивация контента методом FLATE
+func (cnt *impl) UnFlate() Interface {
 	return &impl{
 		esence:    cnt.esence,
 		transcode: cnt.transcode,
