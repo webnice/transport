@@ -35,6 +35,7 @@ type Interface interface {
 	Untar() Interface
 	Unzip() Interface
 	UnGzip() Interface
+	UnDeflate() Interface
 
 	// BackToBegin Returns the content reading pointer to the beginning
 	// This allows you to repeat the work with content
@@ -51,7 +52,8 @@ type impl struct {
 
 	transcode encoding.Encoding // Если не равно nil, то контент перекодируется на лету из указанной кодировки
 	transform TransformFunc     // Функция потокового преобразования контента
-	unzip     bool              // =true - контент разархивируется методом ZIP, возвращается первый файл в архиве
-	untar     bool              // =true - контент разархивируется методом TAR, возвращается первый файл в архиве
-	ungzip    bool              // =true - контент разархивируется методом GZIP, возвращается первый файл в архиве
+	unzip     bool              // =true - контент разархивируется алгоритмом сжатия ZIP, возвращается первый файл в архиве
+	untar     bool              // =true - контент разархивируется алгоритмом сжатия TAR
+	ungzip    bool              // =true - контент разархивируется алгоритмом сжатия GZIP
+	unflate   bool              // =true - контент разархивируется алгоритмом сжатия FLATE
 }

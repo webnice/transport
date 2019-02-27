@@ -6,6 +6,7 @@ import (
 	"archive/tar"
 	"archive/zip"
 	"bytes"
+	"compress/flate"
 	"compress/gzip"
 	"encoding/json"
 	"encoding/xml"
@@ -49,6 +50,12 @@ func (cnt *impl) ReaderCloser() (err error) {
 	// Разархивация GZIP
 	if cnt.ungzip {
 		if cnt.rdc, err = cnt.UncompressGzip(cnt.esence); err != nil {
+			return
+		}
+	}
+	// Разархивация FLATE
+	if cnt.unflate {
+		if cnt.rdc, err = cnt.UncompressFlate(cnt.esence); err != nil {
 			return
 		}
 	}
@@ -124,6 +131,19 @@ func (cnt *impl) UncompressGzip(r data.ReadAtSeekerWriteToCloser) (rdr io.ReadCl
 	return
 }
 
+// UncompressFlate Uncompress content as flate
+func (cnt *impl) UncompressFlate(r data.ReadAtSeekerWriteToCloser) (rdr io.ReadCloser, err error) {
+	var flateReader io.ReadCloser
+
+	if flateReader = flate.NewReader(r); flateReader == nil {
+		err = fmt.Errorf("FLATE reader error")
+		return
+	}
+	rdr = data.NewReadCloser(flateReader, func() error { _ = flateReader.Close(); return r.Close() })
+
+	return
+}
+
 // String Получение контента в виде строки
 func (cnt *impl) String() (ret string, err error) {
 	var tmp = &bytes.Buffer{}
@@ -156,6 +176,8 @@ func (cnt *impl) Transcode(from encoding.Encoding) Interface {
 		transform: cnt.transform,
 		untar:     cnt.untar,
 		unzip:     cnt.unzip,
+		ungzip:    cnt.ungzip,
+		unflate:   cnt.unflate,
 	}
 }
 
@@ -224,6 +246,7 @@ func (cnt *impl) Transform(fn TransformFunc) Interface {
 		untar:     cnt.untar,
 		unzip:     cnt.unzip,
 		ungzip:    cnt.ungzip,
+		unflate:   cnt.unflate,
 	}
 }
 
@@ -236,6 +259,7 @@ func (cnt *impl) Untar() Interface {
 		untar:     true,
 		unzip:     cnt.unzip,
 		ungzip:    cnt.ungzip,
+		unflate:   cnt.unflate,
 	}
 }
 
@@ -248,6 +272,7 @@ func (cnt *impl) Unzip() Interface {
 		untar:     cnt.untar,
 		unzip:     true,
 		ungzip:    cnt.ungzip,
+		unflate:   cnt.unflate,
 	}
 }
 
@@ -260,6 +285,20 @@ func (cnt *impl) UnGzip() Interface {
 		untar:     cnt.untar,
 		unzip:     cnt.unzip,
 		ungzip:    true,
+		unflate:   cnt.unflate,
+	}
+}
+
+// UnDeflate Разархивация контента методом DEFLATE
+func (cnt *impl) UnDeflate() Interface {
+	return &impl{
+		esence:    cnt.esence,
+		transcode: cnt.transcode,
+		transform: cnt.transform,
+		untar:     cnt.untar,
+		unzip:     cnt.unzip,
+		ungzip:    cnt.ungzip,
+		unflate:   true,
 	}
 }
 
@@ -267,9 +306,10 @@ func (cnt *impl) UnGzip() Interface {
 // This allows you to repeat the work with content
 func (cnt *impl) BackToBegin() (err error) {
 	if cnt.esence == nil {
-		err = fmt.Errorf("Request failed, response object is nil")
+		err = fmt.Errorf("request failed, response object is nil")
 		return
 	}
 	_, err = cnt.esence.Seek(0, io.SeekStart)
+
 	return
 }
