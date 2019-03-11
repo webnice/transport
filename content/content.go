@@ -126,7 +126,8 @@ func (cnt *impl) UncompressGzip(r data.ReadAtSeekerWriteToCloser) (rdr io.ReadCl
 		err = fmt.Errorf("GZIP content error: %s", err.Error())
 		return
 	} else if err == io.EOF {
-		err = nil
+		rdr, err = r, nil
+		return
 	}
 	rdr = data.NewReadCloser(gzipReader, func() error { _ = gzipReader.Close(); return r.Close() })
 
@@ -141,7 +142,8 @@ func (cnt *impl) UncompressFlate(r data.ReadAtSeekerWriteToCloser) (rdr io.ReadC
 		err = fmt.Errorf("FLATE reader error")
 		return
 	} else if err == io.EOF {
-		err = nil
+		rdr, err = r, nil
+		return
 	}
 	rdr = data.NewReadCloser(flateReader, func() error { _ = flateReader.Close(); return r.Close() })
 
