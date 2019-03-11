@@ -34,6 +34,11 @@ func (m *impl) Put() Value {
 	return &methodType{putMethod}
 }
 
+// Patch Return HTTP method PATCH
+func (m *impl) Patch() Value {
+	return &methodType{patchMethod}
+}
+
 // Delete Return HTTP method DELETE
 func (m *impl) Delete() Value {
 	return &methodType{deleteMethod}

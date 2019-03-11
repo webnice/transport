@@ -7,9 +7,10 @@ const (
 	headMethod                    // 3 HEAD
 	postMethod                    // 4 POST
 	putMethod                     // 5 PUT
-	deleteMethod                  // 6 DELETE
-	traceMethod                   // 7 TRACE
-	connectMethod                 // 8 CONNECT
+	patchMethod                   // 6 PATCH
+	deleteMethod                  // 7 DELETE
+	traceMethod                   // 8 TRACE
+	connectMethod                 // 9 CONNECT
 )
 
 // maps String constants
@@ -19,6 +20,7 @@ var maps = map[Type]string{
 	headMethod:    `HEAD`,
 	postMethod:    `POST`,
 	putMethod:     `PUT`,
+	patchMethod:   `PATCH`,
 	deleteMethod:  `DELETE`,
 	traceMethod:   `TRACE`,
 	connectMethod: `CONNECT`,
@@ -63,6 +65,9 @@ type Interface interface {
 
 	// Put Return HTTP method PUT
 	Put() Value
+
+	// Patch Return HTTP method PATCH
+	Patch() Value
 
 	// Delete Return HTTP method DELETE
 	Delete() Value
