@@ -21,13 +21,19 @@ var rexReplaceCodepageName = regexp.MustCompile(`[-_ ]`)
 // Charmap is an interface
 type Charmap interface {
 	FindByName(string) encoding.Encoding
+	CodePage037() encoding.Encoding
 	CodePage437() encoding.Encoding
 	CodePage850() encoding.Encoding
 	CodePage852() encoding.Encoding
 	CodePage855() encoding.Encoding
 	CodePage858() encoding.Encoding
+	CodePage860() encoding.Encoding
 	CodePage862() encoding.Encoding
+	CodePage863() encoding.Encoding
+	CodePage865() encoding.Encoding
 	CodePage866() encoding.Encoding
+	CodePage1047() encoding.Encoding
+	CodePage1140() encoding.Encoding
 	Iso8859_1() encoding.Encoding
 	Iso8859_2() encoding.Encoding
 	Iso8859_3() encoding.Encoding
@@ -40,6 +46,7 @@ type Charmap interface {
 	Iso8859_8() encoding.Encoding
 	Iso8859_8E() encoding.Encoding
 	Iso8859_8I() encoding.Encoding
+	Iso8859_9() encoding.Encoding
 	Iso8859_10() encoding.Encoding
 	Iso8859_13() encoding.Encoding
 	Iso8859_14() encoding.Encoding
@@ -71,6 +78,11 @@ func NewCharmap() Charmap {
 	return &implementation{}
 }
 
+// CodePage037 is the IBM Code Page 037 encoding
+func (cm *implementation) CodePage037() encoding.Encoding {
+	return charmap.CodePage037
+}
+
 // CodePage437 is the IBM Code Page 437 encoding
 func (cm *implementation) CodePage437() encoding.Encoding {
 	return charmap.CodePage437
@@ -96,14 +108,39 @@ func (cm *implementation) CodePage858() encoding.Encoding {
 	return charmap.CodePage858
 }
 
+// CodePage860 is the IBM Code Page 860 encoding
+func (cm *implementation) CodePage860() encoding.Encoding {
+	return charmap.CodePage860
+}
+
 // CodePage862 is the IBM Code Page 862 encoding
 func (cm *implementation) CodePage862() encoding.Encoding {
 	return charmap.CodePage862
 }
 
+// CodePage863 is the IBM Code Page 863 encoding
+func (cm *implementation) CodePage863() encoding.Encoding {
+	return charmap.CodePage863
+}
+
+// CodePage865 is the IBM Code Page 865 encoding
+func (cm *implementation) CodePage865() encoding.Encoding {
+	return charmap.CodePage865
+}
+
 // CodePage866 is the IBM Code Page 866 encoding
 func (cm *implementation) CodePage866() encoding.Encoding {
 	return charmap.CodePage866
+}
+
+// CodePage1047 is the IBM Code Page 1047 encoding
+func (cm *implementation) CodePage1047() encoding.Encoding {
+	return charmap.CodePage1047
+}
+
+// CodePage1140 is the IBM Code Page 1140 encoding
+func (cm *implementation) CodePage1140() encoding.Encoding {
+	return charmap.CodePage1140
 }
 
 // Iso8859_1 is the ISO 8859-1 encoding
@@ -164,6 +201,11 @@ func (cm *implementation) Iso8859_8E() encoding.Encoding {
 // Iso8859_8I is the ISO 8859-8I encoding
 func (cm *implementation) Iso8859_8I() encoding.Encoding {
 	return charmap.ISO8859_8I
+}
+
+// Iso8859_9 is the ISO 8859-9 encoding
+func (cm *implementation) Iso8859_9() encoding.Encoding {
+	return charmap.ISO8859_9
 }
 
 // Iso8859_10 is the ISO 8859-10 encoding
@@ -268,14 +310,15 @@ func (cm *implementation) XUserDefined() encoding.Encoding {
 
 // FindByName Поиск кодивой страницы по имени кодировки
 func (cm *implementation) FindByName(name string) (ret encoding.Encoding) {
-	var sm, nm string
-	var item encoding.Encoding
-	var i int
+	var (
+		sm, nm string
+		item   encoding.Encoding
+		i      int
+	)
 
 	sm = rexReplaceCodepageName.ReplaceAllString(strings.ToLower(name), ``)
 	for i = range charmap.All {
-		item = charmap.All[i]
-		nm = rexReplaceCodepageName.ReplaceAllString(strings.ToLower(fmt.Sprintf("%s", item)), ``)
+		item, nm = charmap.All[i], rexReplaceCodepageName.ReplaceAllString(strings.ToLower(fmt.Sprintf("%s", item)), ``)
 		if strings.EqualFold(sm, nm) {
 			ret = item
 		}
