@@ -198,7 +198,6 @@ func (cnt *impl) UnmarshalJSON(i interface{}) (err error) {
 	}
 	defer func() { _ = cnt.rdc.Close() }()
 	decoder = json.NewDecoder(cnt.rdc)
-	decoder.UseNumber()
 	err = decoder.Decode(i)
 
 	return
