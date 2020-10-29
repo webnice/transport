@@ -1,10 +1,6 @@
 package data
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
-import (
-	"io"
-)
+import "io"
 
 // NewReadCloser Создание нового объекта на основе io.Reader
 func NewReadCloser(w io.Reader, fn func() error) ReadCloser {

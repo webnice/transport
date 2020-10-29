@@ -1,14 +1,12 @@
 package transport
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"crypto/tls"
 	"net/http"
 	"time"
 
-	"gopkg.in/webnice/transport.v2/methods"
-	"gopkg.in/webnice/transport.v2/request"
+	"github.com/webnice/transport/v3/methods"
+	"github.com/webnice/transport/v3/request"
 )
 
 // Interface is an interface of object

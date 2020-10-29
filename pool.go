@@ -1,13 +1,11 @@
 package transport
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"context"
 	"fmt"
 	runtimeDebug "runtime/debug"
 
-	"gopkg.in/webnice/transport.v2/request"
+	"github.com/webnice/transport/v3/request"
 )
 
 // Создание и запуск пула воркеров для обслуживания запросов

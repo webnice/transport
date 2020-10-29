@@ -1,10 +1,6 @@
 package header
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
-import (
-	"net/http"
-)
+import "net/http"
 
 // Interface is an interface of package
 type Interface interface {

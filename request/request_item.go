@@ -1,7 +1,5 @@
 package request
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"bytes"
 	"context"
@@ -13,11 +11,10 @@ import (
 	"net/http/httputil"
 	"time"
 
-	"gopkg.in/webnice/transport.v2/methods"
-	"gopkg.in/webnice/web.v1/header"
-
-	transportHeader "gopkg.in/webnice/transport.v2/header"
-	"gopkg.in/webnice/transport.v2/response"
+	transportHeader "github.com/webnice/transport/v3/header"
+	"github.com/webnice/transport/v3/methods"
+	"github.com/webnice/transport/v3/response"
+	"github.com/webnice/web/v2/header"
 )
 
 // Cancel Aborting request

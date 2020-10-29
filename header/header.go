@@ -1,10 +1,6 @@
 package header
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
-import (
-	"net/http"
-)
+import "net/http"
 
 // New creates a new object and return interface
 func New(item ...http.Header) Interface {

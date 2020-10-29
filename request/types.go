@@ -1,7 +1,5 @@
 package request
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"bytes"
 	"context"
@@ -10,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/webnice/transport.v2/header"
-	"gopkg.in/webnice/transport.v2/methods"
-	"gopkg.in/webnice/transport.v2/response"
+	"github.com/webnice/transport/v3/header"
+	"github.com/webnice/transport/v3/methods"
+	"github.com/webnice/transport/v3/response"
 )
 
 // Pool is an interface of package

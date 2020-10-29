@@ -1,10 +1,6 @@
 package data
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
-import (
-	"io"
-)
+import "io"
 
 // NewWriteCloser Создание нового объекта на основе io.Writer
 func NewWriteCloser(w io.Writer) WriteCloser {

@@ -1,8 +1,6 @@
 package methods
 
-import (
-	"strings"
-)
+import "strings"
 
 // Int Return method as int constant
 func (mt *methodType) Int() int {

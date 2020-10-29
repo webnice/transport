@@ -1,7 +1,5 @@
 package content
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"archive/tar"
 	"archive/zip"
@@ -13,8 +11,8 @@ import (
 	"fmt"
 	"io"
 
-	"gopkg.in/webnice/transport.v2/charmap"
-	"gopkg.in/webnice/transport.v2/data"
+	"github.com/webnice/transport/v3/charmap"
+	"github.com/webnice/transport/v3/data"
 
 	"golang.org/x/text/encoding"
 	"golang.org/x/text/transform"

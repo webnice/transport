@@ -1,8 +1,6 @@
 package methods
 
-import (
-	"strings"
-)
+import "strings"
 
 // New Function create new implementation of interface
 func New() Interface {

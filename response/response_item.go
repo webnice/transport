@@ -1,7 +1,5 @@
 package response
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"fmt"
 	"io"
@@ -12,10 +10,10 @@ import (
 	runtimeDebug "runtime/debug"
 	"time"
 
-	"gopkg.in/webnice/transport.v2/charmap"
-	"gopkg.in/webnice/transport.v2/content"
-	"gopkg.in/webnice/transport.v2/data"
-	"gopkg.in/webnice/transport.v2/header"
+	"github.com/webnice/transport/v3/charmap"
+	"github.com/webnice/transport/v3/content"
+	"github.com/webnice/transport/v3/data"
+	"github.com/webnice/transport/v3/header"
 )
 
 // DebugFunc Set debug func and enable or disable debug mode

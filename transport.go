@@ -1,7 +1,5 @@
 package transport
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"crypto/tls"
 	"fmt"
@@ -11,8 +9,8 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"gopkg.in/webnice/transport.v2/methods"
-	"gopkg.in/webnice/transport.v2/request"
+	"github.com/webnice/transport/v3/methods"
+	"github.com/webnice/transport/v3/request"
 )
 
 // New Function creates the transport object and return interface

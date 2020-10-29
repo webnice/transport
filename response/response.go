@@ -1,14 +1,12 @@
 package response
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"bytes"
 	"os"
 	"sync"
 	"time"
 
-	"gopkg.in/webnice/transport.v2/charmap"
+	"github.com/webnice/transport/v3/charmap"
 )
 
 // New creates a new object and return interface

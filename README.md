@@ -11,5 +11,5 @@ Client for HTTP request
 
 #### Install
 ```bash
-go get gopkg.in/webnice/transport.v2
+go get github.com/webnice/transport/v3
 ```

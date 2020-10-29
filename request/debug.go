@@ -1,10 +1,6 @@
 package request
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
-import (
-	"bytes"
-)
+import "bytes"
 
 // Отображение запроса в дебаг режиме
 func (r *Request) debugRequest(data []byte) {

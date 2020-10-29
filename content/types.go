@@ -1,11 +1,9 @@
 package content
 
-//import "gopkg.in/webnice/debug.v1"
-//import "gopkg.in/webnice/log.v2"
 import (
 	"io"
 
-	"gopkg.in/webnice/transport.v2/data"
+	"github.com/webnice/transport/v3/data"
 
 	"golang.org/x/text/encoding"
 )
