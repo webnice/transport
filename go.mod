@@ -1,8 +1,8 @@
-module github.com/webnice/transport/v3
+module github.com/webnice/transport/v4
 
-go 1.15
+go 1.22
 
 require (
-	github.com/webnice/web/v2 v2.0.0
-	golang.org/x/text v0.3.4
+	github.com/webnice/dic v1.2.1
+	golang.org/x/text v0.21.0
 )

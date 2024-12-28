@@ -1,14 +1,14 @@
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
+## Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o
 *.a
 *.so
 
-# IDE
+## IDE
 .project
 .settings
 .idea
 
-# Folders
+## Folders
 _obj
 _test
 _dev
@@ -18,7 +18,10 @@ _dev
 /tmp
 /rpmbuild
 
-# Architecture specific extensions/prefixes
+## Services
+/.coveralls
+
+## Architecture specific extensions/prefixes
 *.[568vq]
 [568vq].out
 
@@ -33,9 +36,9 @@ _testmain.go
 *.test
 *.prof
 
-# Binaries
+## Binaries
 /bin/
 /pkg/
 
-# Dependences
+## Dependences
 /*.log
