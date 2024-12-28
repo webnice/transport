@@ -13,10 +13,10 @@ import (
 	"golang.org/x/text/encoding/charmap"
 )
 
-// Преобразование различного написания кодировок к одному путём удаления символов разделителей
+// Преобразование различного написания кодировок к одному путём удаления символов разделителей.
 var rexReplaceCodepageName = regexp.MustCompile(`[-_ ]`)
 
-// Charmap is an interface
+// Interface Интерфейс пакета.
 type Charmap interface {
 	FindByName(string) encoding.Encoding
 	CodePage037() encoding.Encoding
@@ -67,7 +67,7 @@ type Charmap interface {
 	XUserDefined() encoding.Encoding
 }
 
-// implementation is an methods implementation
+// Объект сущности пакета.
 type implementation struct {
 }
 
@@ -306,7 +306,7 @@ func (cm *implementation) XUserDefined() encoding.Encoding {
 	return charmap.XUserDefined
 }
 
-// FindByName Поиск кодивой страницы по имени кодировки
+// FindByName Поиск кодовой страницы по имени кодировки.
 func (cm *implementation) FindByName(name string) (ret encoding.Encoding) {
 	var (
 		sm, nm string

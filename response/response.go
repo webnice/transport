@@ -6,18 +6,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/webnice/transport/v3/charmap"
+	"github.com/webnice/transport/v4/charmap"
 )
 
-// New creates a new object and return interface
+// New Конструктор объекта сущности пакета, возвращается интерфейс пакета.
 func New() Pool {
 	var rsp = new(impl)
 	rsp.responsePool = new(sync.Pool)
 	rsp.responsePool.New = rsp.NewResponseItem
+
 	return rsp
 }
 
-// NewResponseItem Конструктор sync.Pool для Response
+// NewResponseItem Конструктор объектов бассейна для Response.
 func (rsp *impl) NewResponseItem() interface{} {
 	var ret = &Response{
 		contentData: &bytes.Buffer{},
@@ -26,18 +27,18 @@ func (rsp *impl) NewResponseItem() interface{} {
 	return ret
 }
 
-// ResponseGet Извлечение из pool нового элемента Response
+// ResponseGet Извлечение из бассейна нового элемента Response.
 func (rsp *impl) ResponseGet() Interface {
 	return rsp.responsePool.Get().(*Response)
 }
 
-// ResponsePut Возврат в sync.Pool использованного элемента Response
+// ResponsePut Возврат в бассейн использованного элемента Response.
 func (rsp *impl) ResponsePut(req Interface) {
 	rsp.responseClean(req.(*Response))
 	rsp.responsePool.Put(req)
 }
 
-// Очистка данных объекта Response, подготовка к переиспользованию
+// Очистка данных объекта Response, подготовка к возврату объекта в бассейн для повторного использования.
 func (rsp *impl) responseClean(r *Response) {
 	r.err = nil
 	r.response = nil
@@ -51,7 +52,7 @@ func (rsp *impl) responseClean(r *Response) {
 	}
 	r.contentFh = nil
 	r.contentWriteCloser = nil
-	// Временные файлы
+	// Временные файлы.
 	for r.tmpI = range r.contentTemporaryFiles {
 		_ = os.Remove(r.contentTemporaryFiles[r.tmpI])
 	}
@@ -61,7 +62,6 @@ func (rsp *impl) responseClean(r *Response) {
 		r.contentReader.Done()
 	}
 	r.contentReader = nil
-
-	// Переменные для внутренних целей
+	// Переменные для внутренних целей.
 	r.tmpOk, r.tmpTm, r.tmpString, r.tmpI = false, time.Time{}, r.tmpString[:0], 0
 }

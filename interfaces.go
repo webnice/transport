@@ -5,93 +5,95 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/webnice/transport/v3/methods"
-	"github.com/webnice/transport/v3/request"
+	"github.com/webnice/transport/v4/request"
 )
 
 // Interface is an interface of object
 type Interface interface {
-	// Method Return interface of request methods
-	Method() methods.Interface
-
-	// RequestPoolSize Specifies a number of workers in the query pool
+	// RequestPoolSize Назначение количества процессов в бассейне выполнения запросов.
 	RequestPoolSize(n uint16) Interface
 
-	// ProxyFunc Specifies a function to return a proxy for a given Request
+	// ProxyFunc Назначение функции настроек прокси для выполнения запросов.
 	ProxyFunc(f ProxyFunc) Interface
 
-	// ProxyConnectHeader Optionally specifies headers to send to proxies during CONNECT requests
+	// ProxyConnectHeader Назначение заголовков запроса установки соединения с прокси сервером.
 	ProxyConnectHeader(v http.Header) Interface
 
-	// DialContextTimeout Is the maximum amount of time a dial will wait for a connect to complete. The default is no timeout
+	// DialContextTimeout Назначение максимального вреени ожидания на загрузку контента. 0-не ограничено.
 	DialContextTimeout(t time.Duration) Interface
 
-	// DialContextKeepAlive Specifies the keep-alive period for an active network connection. If zero, keep-alives are not enabled
+	// DialContextKeepAlive Назначение времени поддержания не активного соединения до его разрыва. 0-без ограничений.
 	DialContextKeepAlive(t time.Duration) Interface
 
-	// MaximumIdleConnections Controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit
+	// MaximumIdleConnections Назначение максимального количества открытых не активных соединений. 0-без ограничений.
 	MaximumIdleConnections(v uint) Interface
 
-	// MaximumIdleConnectionsPerHost If non-zero, controls the maximum idle (keep-alive) connections to keep per-host
+	// MaximumIdleConnectionsPerHost Назначение максимального количества открытых не активных соединений для
+	// каждого хоста. 0-без ограничений.
 	MaximumIdleConnectionsPerHost(v uint) Interface
 
-	// IdleConnectionTimeout Is the maximum amount of time an idle (keep-alive) connection will remain idle before closing itself. Zero means no limit
+	// IdleConnectionTimeout Назначение максимального количества открытых не активных соединений для всех
+	// хостов. 0-без ограничений.
 	IdleConnectionTimeout(t time.Duration) Interface
 
-	// TLSHandshakeTimeout Specifies the maximum amount of time waiting to wait for a TLS handshake. Zero means no timeout
+	// TLSHandshakeTimeout Назначение максимального времени ожидания обмена рукопожатиями по протоколу
+	// TLS. 0-без ограничений.
 	TLSHandshakeTimeout(t time.Duration) Interface
 
-	// TLSSkipVerify Enables skip verify TLS certificate for all requests
+	// TLSSkipVerify Установка режима отключения проверки TLS сертификатов.
 	TLSSkipVerify(v bool) Interface
 
-	// TLSClientConfig Specifies the TLS configuration to use with tls.Client.
+	// TLSClientConfig Настройки клиента TLS соединения.
+	// Если =nil-используются настройки по умолчанию из стандартной библиотеки.
 	TLSClientConfig(v *tls.Config) Interface
 
-	// DialTLS Specifies an custom dial function for creating TLS connections for non-proxied HTTPS requests
+	// DialTLS Назначение функции установки TLS соединения для запросов к HTTPS хостам.
 	DialTLS(fn DialTLSFunc) Interface
 
-	// DialContextCustomFunc Specifies an custom dial function for creating unencrypted TCP connections
+	// DialContextCustomFunc Назначение функции установки не шифрованного соединения с хостами.
 	DialContextCustomFunc(fn DialContextFunc) Interface
 
-	// DualStack Enables RFC 6555-compliant "Happy Eyeballs" dialing when the network is "tcp" and the host in the address parameter resolves to both IPv4 and IPv6 addresses
+	// DualStack Включение или отключения функции "Happy Eyeballs" RFC 6555.
 	DualStack(v bool) Interface
 
-	// TotalTimeout Specifies a time limit for requests made by this Client. The timeout includes connection time, any redirects, and reading the response body.
-	// The timer remains running after Get, Head, Post, or Do return and will interrupt reading of the Response.Body.
-	// A Timeout of zero means no timeout.
+	// TotalTimeout Установка ограничения времени на выполнение запроса и загрузку всех данных
+	// ответа. 0-без ограничений.
 	TotalTimeout(t time.Duration) Interface
 
-	// Transport Specifies of adjusted transport object
+	// Transport Объект http транспорта.
 	Transport(tr *http.Transport) Interface
 
-	// CookieJar Specifies of Cookie Jar interface
+	// CookieJar Интерфейс объекта печенек.
 	CookieJar(v http.CookieJar) Interface
 
-	// RequestGet Загрузка из sync.Pool объекта request и возврат интерфейса к нему
-	// Полученный объект необходимо возвращать в sync.Pool методом RequestPut во избежании утечки памяти
+	// RequestGet Получение из бассейна объекта request.Interface.
+	// Полученный объект обязательно необходимо вернуть в бассейн методом RequestPut для избежания утечки памяти.
 	RequestGet() request.Interface
 
-	// RequestPut Возврат в sync.Pool объекта request
+	// RequestPut Возвращение в бассейн объекта request.Interface.
 	RequestPut(req request.Interface)
 
-	// Client Returns the current http.Client
+	// Client Получение клиента http.Client.
+	// В пределах одного экземпляра transport.impl, http.Client создаётся только один раз
+	// при первом вызове данной функции. Эта функция так же вызывается при первом вызове функции Do().
 	Client() *http.Client
 
-	// Do Executing the query in synchronous mode. Blocking function
+	// Do Выполнение запроса в асинхронном режиме.
 	Do(req request.Interface) Interface
 
-	// Done Stopping the worker pool, closing connections
+	// Done Остановка процессов работников, завершение соединений.
 	Done()
 
-	// DebugFunc Set debug func and enable or disable debug mode
-	// If fn=not nil - debug mode is enabled. If fn=nil, debug mode is disbled
+	// DebugFunc Включение или отключение режима отладки.
+	// Если передана функция отладки не равная nil, режим отладки включается.
+	// Передача функции отладки равной nil отключает режим отладки.
 	DebugFunc(fn DebugFunc) Interface
 
-	// ERRORS
+	// ОШИБКИ
 
-	// Error Return latest error
+	// Error Последняя ошибка.
 	Error() error
 
-	// ErrorFunc Registering the error function on the client side
+	// ErrorFunc Регистрация функции получения ошибок транспорта.
 	ErrorFunc(fn ErrorFunc) Interface
 }

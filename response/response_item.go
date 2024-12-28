@@ -3,50 +3,63 @@ package response
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"os"
 	"path"
 	runtimeDebug "runtime/debug"
+	"strconv"
 	"time"
 
-	"github.com/webnice/transport/v3/charmap"
-	"github.com/webnice/transport/v3/content"
-	"github.com/webnice/transport/v3/data"
-	"github.com/webnice/transport/v3/header"
+	"github.com/webnice/dic"
+	"github.com/webnice/transport/v4/charmap"
+	"github.com/webnice/transport/v4/content"
+	"github.com/webnice/transport/v4/data"
+	"github.com/webnice/transport/v4/header"
 )
 
-// DebugFunc Set debug func and enable or disable debug mode
-// If fn=not nil - debug mode is enabled. If fn=nil, debug mode is disbled
+// DebugFunc Включение или отключение режима отладки.
+// Если передана функция отладки не равная nil, режим отладки включается.
+// Передача функции отладки равной nil отключает режим отладки.
 func (r *Response) DebugFunc(fn DebugFunc) Interface { r.debugFunc = fn; return r }
 
-// Do Выполнение запроса и получение Response
+// Do Выполнение запроса и получение Response.
 func (r *Response) Do(client *http.Client, request *http.Request) (err error) {
 	r.response, err = client.Do(request)
+
 	return
 }
 
-// Создание пути к месту хранения файла и полного имени временного файла
+// Создание пути к месту хранения файла и полного имени временного файла.
 func (r *Response) makeTemporaryFileName() {
 	r.tmpTm = time.Now().In(time.Local)
 	r.contentFilename = path.Join(
 		os.TempDir(),
 		fmt.Sprintf("%020d.tmp", r.tmpTm.UnixNano()),
 	)
+
 	return
 }
 
-// Создание WriteCloser для загрузки результата запроса
+// Создание WriteCloser для загрузки результата запроса.
 func (r *Response) makeContentContainer(size int64) (err error) {
-	if size < 0 || size > int64(maxDataSizeLoadedInMemory) {
-		// Создание временного файла для данных
+	defer func() {
+		if e := recover(); e != nil {
+			err = fmt.Errorf("Паника: %s\nСтек выполнения:\n%s", e.(error), string(runtimeDebug.Stack()))
+			return
+		}
+	}()
+	switch size < 0 || size > int64(maxDataSizeLoadedInMemory) {
+	case true:
+		// Создание временного файла для данных.
 		r.makeTemporaryFileName()
 		r.contentFh, err = os.OpenFile(r.contentFilename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, os.FileMode(0600))
 		r.contentTemporaryFiles = append(r.contentTemporaryFiles, r.contentFilename)
 		r.contentWriteCloser = r.contentFh
-	} else {
-		// Чтение в память
-		r.contentData.Grow(int(r.response.ContentLength)) // Grow может паниковать (дебильный код)
+	default:
+		// Чтение в память.
+		r.contentData.Grow(int(r.response.ContentLength)) // Grow может паниковать (дебильный код).
 		r.contentInMemory = true
 		r.contentWriteCloser = data.NewWriteCloser(r.contentData)
 	}
@@ -54,35 +67,38 @@ func (r *Response) makeContentContainer(size int64) (err error) {
 	return
 }
 
-// Создаёт единый интерфейс чтения загруженного контента
+// Создание единого интерфейса чтения загруженного контента.
 func (r *Response) makeContentReader() {
-	if r.contentInMemory {
+	const defaultMode = os.FileMode(0600)
+
+	switch r.contentInMemory {
+	case true:
 		r.contentReader = data.NewReadAtSeekerWriteToCloser(r.contentData)
-	} else {
-		if r.contentFh, r.err = os.OpenFile(r.contentFilename, os.O_RDONLY, os.FileMode(0600)); r.err != nil {
+	default:
+		if r.contentFh, r.err = os.OpenFile(r.contentFilename, os.O_RDONLY, defaultMode); r.err != nil {
 			return
 		}
 		r.contentReader = data.NewReadAtSeekerWriteToCloser(r.contentFh)
 	}
 }
 
-// Load Load all response data
+// Load Загрузка данных ответа на запрос.
 func (r *Response) Load() (err error) {
 	defer func() {
 		if e := recover(); e != nil {
-			err = fmt.Errorf("Catch panic: %s\nGoroutine stack is:\n%s", e.(error), string(runtimeDebug.Stack()))
+			err = fmt.Errorf("Паника: %s\nСтек выполнения:\n%s", e.(error), string(runtimeDebug.Stack()))
 			return
 		}
 	}()
-	// Создание интерфейса io.WriteCloser к результату запроса в памяти
+	// Создание интерфейса io.WriteCloser к результату запроса в памяти.
 	if err = r.makeContentContainer(r.response.ContentLength); err != nil {
 		return
 	}
-	// Засекаем время выполнения загрузки
+	// Засекаем время выполнения загрузки.
 	r.timeBegin = time.Now().In(time.Local)
-	// Загрузка данных
+	// Загрузка данных.
 	r.contentLength, err = io.Copy(r.contentWriteCloser, r.response.Body)
-	// Подсчитываем время ушедшее на загрузку
+	// Подсчитываем время ушедшее на загрузку.
 	r.timeLatency = time.Since(r.timeBegin)
 	_ = r.contentWriteCloser.Close()
 	_ = r.response.Body.Close()
@@ -90,7 +106,7 @@ func (r *Response) Load() (err error) {
 		return
 	}
 	r.makeContentReader()
-	// Если включён дебаг
+	// Если включён дебаг.
 	if r.debugFunc != nil {
 		r.response.Body = r.contentReader
 		if buf, err := httputil.DumpResponse(r.response, true); err == nil {
@@ -102,37 +118,63 @@ func (r *Response) Load() (err error) {
 	return
 }
 
-// Error Return latest error
+// Error Последняя ошибка.
 func (r *Response) Error() error { return r.err }
 
-// Response Returns the http.Response as is
-func (r *Response) Response() *http.Response {
+// Response Возвращает http.Response как есть.
+func (r *Response) Response() (ret *http.Response) {
 	_, _ = r.contentReader.Seek(0, io.SeekStart)
-	r.response.Body = r.contentReader
-	return r.response
+	r.response.Body, ret = r.contentReader, r.response
+
+	return
 }
 
-// ContentLength records the length of the associated content
+// ContentLength Длинна контента ответа на запрос.
 func (r *Response) ContentLength() int64 { return r.response.ContentLength }
 
-// Cookies parses and returns the cookies set in the Set-Cookie headers
+// Cookies Разбор заголовка с печеньками и возврат списка переданных печенек.
 func (r *Response) Cookies() []*http.Cookie { return r.response.Cookies() }
 
-// Latency is an request latency for reading body of response without reading header of response
+// Latency Задержка ответа сервера на запрос.
+// Значение получено без учёта времени на чтение заголовков и тела ответа.
 func (r *Response) Latency() time.Duration { return r.timeLatency }
 
-// StatusCode is an http status code of response
+// StatusCode Код http ответа.
 func (r *Response) StatusCode() int { return r.response.StatusCode }
 
-// Status is an http status string of response, for known HTTP codes
+// Status Строковый статус http ответа.
 func (r *Response) Status() string { return r.response.Status }
 
-// Header maps header keys to values. If the response had multiple headers with the same key,
-// they may be concatenated, with comma delimiters
+// Header Интерфейс работы с заголовками, представлен в виде карты ключ=значение.
 func (r *Response) Header() header.Interface { return header.New(r.response.Header) }
 
-// Charmap interface
+// Charmap Интерфейс работы с кодировкой.
 func (r *Response) Charmap() charmap.Charmap { return r.charmap }
 
-// Content() Interface for working with response content
+// RetryAfter Значение заголовка RetryAfter.
+// Если возвращается значение 0 - заголовок отсутствовал или не соответствовал стандартам.
+func (r *Response) RetryAfter() (ret time.Duration) {
+	const errConv = "конвертация значения заголовка RetryAfter из %q в число прервана ошибкой: %s"
+	var (
+		err error
+		raw string
+		num int64
+	)
+
+	if !r.Header().IsSet(dic.Header().RetryAfter.String()) {
+		return
+	}
+	if raw = r.Header().Get(dic.Header().RetryAfter.String()); raw == "" {
+		return
+	}
+	if num, err = strconv.ParseInt(raw, 10, 64); err != nil {
+		log.Printf(errConv, raw, err)
+		return
+	}
+	ret = time.Second * time.Duration(num)
+
+	return
+}
+
+// Content Интерфейс работы с контентом.
 func (r *Response) Content() content.Interface { return content.New(r.contentReader) }

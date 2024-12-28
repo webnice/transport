@@ -2,7 +2,7 @@ package header
 
 import "net/http"
 
-// New creates a new object and return interface
+// New Конструктор объекта сущности пакета, возвращается интерфейс пакета.
 func New(item ...http.Header) Interface {
 	var (
 		i   int
@@ -18,53 +18,49 @@ func New(item ...http.Header) Interface {
 	return hdr
 }
 
-// Add adds the key, value pair to the header.
-// It appends to any existing values associated with key.
+// Add Добавление заголовка с именем ключа и значением.
 func (hdr *impl) Add(key string, value string) {
 	hdr.Header.Add(key, value)
 }
 
-// Del deletes the values associated with key.
+// Del Удаление заголовка с именем ключа.
 func (hdr *impl) Del(key string) {
 	hdr.Header.Del(key)
 }
 
-// Get gets the first value associated with the given key.
-// If there are no values associated with the key, Get returns "".
-// To access multiple values of a key, access the map directly
-// with CanonicalHeaderKey.
+// Get Получение первого значения заголовка с указанным ключём.
 func (hdr *impl) Get(key string) string {
 	return hdr.Header.Get(key)
 }
 
-// IsSet Check, is key set
+// IsSet Проверка существует ли заголовок с указанным ключём.
 func (hdr *impl) IsSet(key string) (ok bool) {
 	_, ok = hdr.Header[key]
 	return
 }
 
-// Set sets the header entries associated with key to
-// the single element value.  It replaces any existing
-// values associated with key.
+// Set Установка значения заголовка с указанным ключём.
 func (hdr *impl) Set(key string, value string) {
 	hdr.Header.Set(key, value)
 }
 
-// Names Getting a list of all key names
+// Names Получение списка всех ключей заголовка.
 func (hdr *impl) Names() (ret []string) {
-	for kn := range hdr.Header {
-		ret = append(ret, kn)
+	var key string
+
+	for key = range hdr.Header {
+		ret = append(ret, key)
 	}
 
 	return
 }
 
-// Len Return number of defined header names
+// Len Получение количества ключей заголовка.
 func (hdr *impl) Len() int {
 	return len(hdr.Header)
 }
 
-// Reset all headers
+// Reset Очистка заголовка от всех ключей и их значений.
 func (hdr *impl) Reset() {
 	for kn := range hdr.Header {
 		delete(hdr.Header, kn)

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	runtimeDebug "runtime/debug"
 
-	"github.com/webnice/transport/v3/request"
+	"github.com/webnice/transport/v4/request"
 )
 
-// Создание и запуск пула воркеров для обслуживания запросов
+// Создание и запуск бассейна работников для обслуживания запросов.
 func (trt *impl) makePool() {
 	var (
 		i             uint16
@@ -16,14 +16,14 @@ func (trt *impl) makePool() {
 		ctxCancelFunc context.CancelFunc
 	)
 
-	// Если воркеры пула запущены, то выход
+	// Если процессы бассейна запущены, тогда выход.
 	if trt.requestPoolStarted.Load().(bool) {
 		return
 	}
-	// Защита от двойного запуска
+	// Защита от двойного запуска.
 	trt.requestPoolLock.Lock()
 	defer trt.requestPoolLock.Unlock()
-	// Запуск воркеров
+	// Запуск процессов работников.
 	trt.requestPoolCancelFunc = make([]context.CancelFunc, 0, trt.requestPoolSize)
 	for i = 0; i < trt.requestPoolSize; i++ {
 		ctx, ctxCancelFunc = context.WithCancel(context.Background())
@@ -34,7 +34,7 @@ func (trt *impl) makePool() {
 	trt.requestPoolStarted.Store(true)
 }
 
-// Работник пула
+// Процесс работника бассейна.
 func (trt *impl) poolWorker(ctx context.Context) {
 	var req request.Interface
 
@@ -52,7 +52,7 @@ func (trt *impl) poolWorker(ctx context.Context) {
 	}
 }
 
-// Выполнение запроса
+// Выполнение запроса.
 func (trt *impl) request(req request.Interface) {
 	var err error
 

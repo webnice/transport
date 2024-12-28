@@ -8,98 +8,102 @@ import (
 	"sync"
 	"time"
 
-	"github.com/webnice/transport/v3/charmap"
-	"github.com/webnice/transport/v3/content"
-	"github.com/webnice/transport/v3/data"
-	"github.com/webnice/transport/v3/header"
+	"github.com/webnice/transport/v4/charmap"
+	"github.com/webnice/transport/v4/content"
+	"github.com/webnice/transport/v4/data"
+	"github.com/webnice/transport/v4/header"
 )
 
 const (
-	// Максимальный размер данных загружаемый в память 250Mb
+	// Максимальный размер данных загружаемый в память 250Mb.
 	maxDataSizeLoadedInMemory = uint64(250 * 1024 * 1024)
 )
 
-// Pool is an interface of package
+// Pool Бассейн переиспользования объектов.
 type Pool interface {
-	// ResponseGet Извлечение из pool нового элемента Response
+	// ResponseGet Извлечение из бассейна нового элемента Response.
 	ResponseGet() Interface
 
-	// ResponsePut Возврат в sync.Pool использованного элемента Response
+	// ResponsePut Возврат в бассейн использованного элемента Response.
 	ResponsePut(req Interface)
 }
 
-// Interface is an interface of package
+// Interface Интерфейс пакета.
 type Interface interface {
-	// DebugFunc Set debug func and enable or disable debug mode
-	// If fn=not nil - debug mode is enabled. If fn=nil, debug mode is disbled
+	// DebugFunc Включение или отключение режима отладки.
+	// Если передана функция отладки не равная nil, режим отладки включается.
+	// Передача функции отладки равной nil отключает режим отладки.
 	DebugFunc(fn DebugFunc) Interface
 
-	// Do Выполнение запроса и получение Response
+	// Do Выполнение запроса и получение Response.
 	Do(client *http.Client, request *http.Request) error
 
-	// Load all response data
+	// Load Загрузка данных ответа на запрос.
 	Load() error
 
-	// Error Return latest error
+	// Error Последняя ошибка.
 	Error() error
 
-	// Response Returns the http.Response as is
+	// Response Возвращает http.Response как есть.
 	Response() *http.Response
 
-	// ContentLength records the length of the associated content
+	// ContentLength Длинна контента ответа на запрос.
 	ContentLength() int64
 
-	// Cookies parses and returns the cookies set in the Set-Cookie headers
+	// Cookies Разбор заголовка с печеньками и возврат списка переданных печенек.
 	Cookies() []*http.Cookie
 
-	// Latency is an request latency for reading body of response without reading header of response
+	// Latency Задержка ответа сервера на запрос.
+	// Значение получено без учёта времени на чтение заголовков и тела ответа.
 	Latency() time.Duration
 
-	// StatusCode is an http status code of response
+	// StatusCode Код http ответа.
 	StatusCode() int
 
-	// Status is an http status string of response, for known HTTP codes
+	// Status Строковый статус http ответа.
 	Status() string
 
-	// Header maps header keys to values. If the response had multiple headers with the same key,
-	// they may be concatenated, with comma delimiters
+	// Header Интерфейс работы с заголовками, представлен в виде карты ключ=значение.
 	Header() header.Interface
 
-	// Charmap interface
+	// Charmap Интерфейс работы с кодировкой.
 	Charmap() charmap.Charmap
 
-	// Content() Interface for working with response content
+	// RetryAfter Значение заголовка RetryAfter.
+	// Если возвращается значение 0 - заголовок отсутствовал.
+	RetryAfter() (ret time.Duration)
+
+	// Content Интерфейс работы с контентом.
 	Content() content.Interface
 }
 
-// impl is an implementation of package
+// Объект сущности пакета.
 type impl struct {
-	responsePool *sync.Pool // Пул объектов Response
+	responsePool *sync.Pool // Бассейн объектов Response.
 }
 
-// DebugFunc Is an a function for debug request/response data
+// DebugFunc Описание функции отладки запросов.
 type DebugFunc func(data []byte)
 
-// Response is an Response implementation
+// Response Объект Response.
 type Response struct {
-	err                   error                          // Latest error
-	response              *http.Response                 // http.Response object
-	debugFunc             DebugFunc                      // Is an a function for debug request/response data. If not nil - debug mode is enabled. If nil, debug mode is disbled
-	timeBegin             time.Time                      // Дата и время начала загрузки результата запроса
-	timeLatency           time.Duration                  // Время ушедшее за выполнение загрузки результата запроса
-	contentInMemory       bool                           // =true - Результат в памяти, =false - результат во временном файле
-	contentData           *bytes.Buffer                  // Результат запроса в памяти
-	contentFilename       string                         // Имя времененного файла результата запроса
-	contentFh             *os.File                       // Интерфейс файлового дескриптора временного файла
-	contentTemporaryFiles []string                       // Имена временных файлов
-	contentWriteCloser    io.WriteCloser                 // Интерфейс io.WriteCloser к результату запроса в памяти
-	contentLength         int64                          // Размер загруженных данных
-	contentReader         data.ReadAtSeekerWriteToCloser // Интерфейс к данным результата запроса
-	charmap               charmap.Charmap                // charmap interface
-
-	// Переменные
-	tmpOk     bool      // Общая переменная
-	tmpTm     time.Time // Общая переменная
-	tmpString string    // Общая переменная
-	tmpI      int       // Общая переменная
+	err                   error                          // Последняя ошибка.
+	response              *http.Response                 // Объект http.Response.
+	debugFunc             DebugFunc                      // Функция отладки и мониторинга.
+	timeBegin             time.Time                      // Дата и время начала загрузки результата запроса.
+	timeLatency           time.Duration                  // Время ушедшее за выполнение загрузки результата запроса.
+	contentInMemory       bool                           // =true - Результат в памяти, =false - результат во временном файле.
+	contentData           *bytes.Buffer                  // Результат запроса в памяти.
+	contentFilename       string                         // Название временного файла результата запроса.
+	contentFh             *os.File                       // Интерфейс файлового дескриптора временного файла.
+	contentTemporaryFiles []string                       // Названия временных файлов.
+	contentWriteCloser    io.WriteCloser                 // Интерфейс io.WriteCloser для доступа к результату запроса в памяти.
+	contentLength         int64                          // Размер загруженных данных.
+	contentReader         data.ReadAtSeekerWriteToCloser // Интерфейс к данным результата запроса.
+	charmap               charmap.Charmap                // Интерфейс работы с кодировкой.
+	// Переменные.
+	tmpOk     bool      // Общая переменная.
+	tmpTm     time.Time // Общая переменная.
+	tmpString string    // Общая переменная.
+	tmpI      int       // Общая переменная.
 }

@@ -10,66 +10,64 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/webnice/transport/v3/methods"
-	"github.com/webnice/transport/v3/request"
+	"github.com/webnice/transport/v4/request"
 )
 
 const (
-	defaultRequestPoolSize               = uint16(1)        // Specifies a number of workers in the query pool
-	defaultDialContextTimeout            = time.Duration(0) // Is the maximum amount of time a dial will wait for a connect to complete. The default is no timeout
-	defaultDialContextKeepAlive          = 30 * time.Second // Specifies the keep-alive period for an active network connection
-	defaultMaximumIdleConnections        = 100              // Controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit
-	defaultMaximumIdleConnectionsPerHost = 10               // if non-zero, controls the maximum idle (keep-alive) connections to keep per-host
-	defaultIdleConnectionTimeout         = 90 * time.Second // Controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit
-	defaultTLSHandshakeTimeout           = 10 * time.Second // Specifies the maximum amount of time waiting to wait for a TLS handshake. Zero means no timeout
-	defaultTLSInsecureSkipVerify         = false            // Enables skip verify TLS certificate
-	defaultDialContextDualStack          = true             // Enables RFC 6555-compliant "Happy Eyeballs" dialing when the network is "tcp" and the host in the address parameter resolves to both IPv4 and IPv6 addresses
-	requestChanBuffer                    = int(1000)        // Task channel buffer size
+	defaultRequestPoolSize               = uint16(1)        // Количество процессов в бассейне выполнения запросов.
+	defaultDialContextTimeout            = time.Duration(0) // Время ожидания ответа на запрос. По умолчанию - бесконечно.
+	defaultDialContextKeepAlive          = 30 * time.Second // Время поддержания не активного соединения до его разрыва.
+	defaultMaximumIdleConnections        = 100              // Максимальное количество открытых не активных соединений. 0-без ограничений.
+	defaultMaximumIdleConnectionsPerHost = 10               // Максимальное количество открытых не активных соединений для каждого хоста. 0-без ограничений.
+	defaultIdleConnectionTimeout         = 90 * time.Second // Максимальное количество открытых не активных соединений для всех хостов. 0-без ограничений.
+	defaultTLSHandshakeTimeout           = 10 * time.Second // Максимальное время ожидания обменом рукопожатиями по протоколу TLS. 0-без ограничений.
+	defaultTLSInsecureSkipVerify         = false            // Отключение проверки TLS сертификатов.
+	defaultDialContextDualStack          = true             // Включение "Happy Eyeballs" RFC 6555.
+	requestChanBuffer                    = int(1000)        // Размер буферизированного канала обмена данными.
 )
 
-// ProxyFunc Is an a function to return a proxy for a given Request
+// ProxyFunc Функция настроек прокси для выполнения запроса.
 type ProxyFunc func(*http.Request) (*url.URL, error)
 
-// ErrorFunc Is an a client error retrieval function
+// ErrorFunc Функция получения ошибок запроса.
 type ErrorFunc func(err error)
 
-// DebugFunc Is an a function for debug request/response data
+// DebugFunc Функция отладки и мониторинга запросов.
 type DebugFunc func(data []byte)
 
-// DialTLSFunc Type of custom dial function for creating TLS connections for non-proxied HTTPS requests
+// DialTLSFunc Функция выполнения соединения TLS для запросов к HTTPS хостам.
 type DialTLSFunc func(network, addr string) (net.Conn, error)
 
-// DialContextFunc Type of custom dial function for creating unencrypted TCP connections
+// DialContextFunc Функция выполнения подключения к не шифрованным TCP/IP хостам.
 type DialContextFunc func(ctx context.Context, network, addr string) (net.Conn, error)
 
-// is an implementation of transport
+// Объект сущности пакета.
 type impl struct {
-	client                        *http.Client           // Объект http клиента
-	transport                     *http.Transport        // Объект http транспорта
-	cookieJar                     http.CookieJar         // Интерфейс CookieJar
-	requestChan                   chan request.Interface // Канал задач запросов
-	requestPoolLock               *sync.Mutex            // Лок от двойного запуска
-	requestPoolCancelFunc         []context.CancelFunc   // Массив функций остановки пула воркеров
-	requestPoolStarted            *atomic.Value          // =true Пул воркеров запущен
-	requestPoolDone               *sync.WaitGroup        // WaitGroup для полной корректной остановки пула
-	err                           error                  // Latest error
-	errFunc                       ErrorFunc              // Колбэк функция получения ошибок на стороне http клиента
-	debugFunc                     DebugFunc              // Is an a function for debug request/response data. If not nil - debug mode is enabled. If nil, debug mode is disbled
-	methods                       methods.Interface      // Query Methods Interface
-	requestPoolInterface          request.Pool           // Query objects pool interface
-	requestPoolSize               uint16                 // Specifies a number of workers in the query pool
-	proxy                         ProxyFunc              // Specifies a function to return a proxy for a given Request
-	proxyConnectHeader            http.Header            // Optionally specifies headers to send to proxies during CONNECT requests
-	dialContextTimeout            time.Duration          // Is the maximum amount of time a dial will wait for a connect to complete. The default is no timeout
-	dialContextKeepAlive          time.Duration          // Specifies the keep-alive period for an active network connection. If zero, keep-alives are not enabled
-	maximumIdleConnections        uint                   // Controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit
-	maximumIdleConnectionsPerHost uint                   // If non-zero, controls the maximum idle (keep-alive) connections to keep per-host
-	idleConnectionTimeout         time.Duration          // Is the maximum amount of time an idle (keep-alive) connection will remain idle before closing itself. Zero means no limit
-	tlsHandshakeTimeout           time.Duration          // Specifies the maximum amount of time waiting to wait for a TLS handshake. Zero means no timeout
-	tlsInsecureSkipVerify         bool                   // Enables skip verify TLS certificate
-	tlsClientConfig               *tls.Config            // Specifies the TLS configuration to use with tls.Client. If nil, the default configuration is used. If non-nil, HTTP/2 support may not be enabled by default
-	tlsDialFunc                   DialTLSFunc            // Custom dial function for creating TLS connections for non-proxied HTTPS requests
-	dialContextCustomFunc         DialContextFunc        // Custom dial function for creating unencrypted TCP connections
-	dialContextDualStack          bool                   // Enables RFC 6555-compliant "Happy Eyeballs" dialing when the network is "tcp" and the host in the address parameter resolves to both IPv4 and IPv6 addresses
-	totalTimeout                  time.Duration          // Specifies a time limit for requests made by this Client. The timeout includes connection time, any redirects, and reading the response body. A Timeout of zero means no timeout
+	client                        *http.Client           // Объект http клиента.
+	transport                     *http.Transport        // Объект http транспорта.
+	cookieJar                     http.CookieJar         // Интерфейс CookieJar.
+	requestChan                   chan request.Interface // Канал задач запросов.
+	requestPoolLock               *sync.Mutex            // Блокировка от двойного запуска.
+	requestPoolCancelFunc         []context.CancelFunc   // Массив функций остановки бассейна работников.
+	requestPoolStarted            *atomic.Value          // =true Бассейн работников запущен.
+	requestPoolDone               *sync.WaitGroup        // WaitGroup для полной корректной остановки пула.
+	err                           error                  // Последняя ошибка.
+	errFunc                       ErrorFunc              // Функция получения ошибок на стороне http клиента.
+	debugFunc                     DebugFunc              // Функция отладки и мониторинга запросов.
+	requestPoolInterface          request.Pool           // Интерфейс бассейна объектов запросов.
+	requestPoolSize               uint16                 // Количество процессов в бассейне выполнения запросов.
+	proxy                         ProxyFunc              // Функция настроек прокси для выполнения запроса.
+	proxyConnectHeader            http.Header            // Не обязательные заголовки для установки соединения с прокси сервером.
+	dialContextTimeout            time.Duration          // Максимальное время ожидания на загрузку контента. 0-не ограничено.
+	dialContextKeepAlive          time.Duration          // Время поддержания не активного соединения до его разрыва.
+	maximumIdleConnections        uint                   // Максимальное количество открытых не активных соединений. 0-без ограничений.
+	maximumIdleConnectionsPerHost uint                   // Максимальное количество открытых не активных соединений для каждого хоста. 0-без ограничений.
+	idleConnectionTimeout         time.Duration          // Максимальное количество открытых не активных соединений для всех хостов. 0-без ограничений.
+	tlsHandshakeTimeout           time.Duration          // Максимальное время ожидания обменом рукопожатиями по протоколу TLS. 0-без ограничений.
+	tlsInsecureSkipVerify         bool                   // Отключение проверки TLS сертификатов.
+	tlsClientConfig               *tls.Config            // Настройки клиента TLS соединения. Если =nil-используются настройки по умолчанию из стандартной библиотеки.
+	tlsDialFunc                   DialTLSFunc            // Функция выполнения соединения TLS для запросов к HTTPS хостам.
+	dialContextCustomFunc         DialContextFunc        // Функция выполнения подключения к не шифрованным TCP/IP хостам.
+	dialContextDualStack          bool                   // Включение "Happy Eyeballs" RFC 6555.
+	totalTimeout                  time.Duration          // Ограничение времени на выполнение запроса и загрузку всех данных ответа. 0-без ограничений.
 }

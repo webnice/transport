@@ -14,7 +14,7 @@ func setDefaults(trt *impl) {
 	trt.ProxyFunc(http.ProxyFromEnvironment)
 }
 
-// RequestPoolSize Specifies a number of workers in the query pool
+// RequestPoolSize Назначение количества процессов в бассейне выполнения запросов.
 func (trt *impl) RequestPoolSize(v uint16) Interface {
 	if v == 0 {
 		return trt
@@ -23,7 +23,7 @@ func (trt *impl) RequestPoolSize(v uint16) Interface {
 	return trt
 }
 
-// ProxyFunc Specifies a function to return a proxy for a given Request
+// ProxyFunc Назначение функции настроек прокси для выполнения запросов.
 func (trt *impl) ProxyFunc(f ProxyFunc) Interface {
 	if f == nil {
 		return trt
@@ -32,95 +32,96 @@ func (trt *impl) ProxyFunc(f ProxyFunc) Interface {
 	return trt
 }
 
-// ProxyConnectHeader Optionally specifies headers to send to proxies during CONNECT requests
+// ProxyConnectHeader Назначение заголовков запроса установки соединения с прокси сервером.
 func (trt *impl) ProxyConnectHeader(v http.Header) Interface {
 	trt.proxyConnectHeader = v
 	return trt
 }
 
-// DialContextTimeout Is the maximum amount of time a dial will wait for a connect to complete. The default is no timeout
+// DialContextTimeout Назначение максимального времени ожидания на загрузку контента. 0-не ограничено.
 func (trt *impl) DialContextTimeout(t time.Duration) Interface {
 	trt.dialContextTimeout = t
 	return trt
 }
 
-// DialContextKeepAlive Specifies the keep-alive period for an active network connection. If zero, keep-alives are not enabled
+// DialContextKeepAlive Назначение времени поддержания не активного соединения до его разрыва. 0-без ограничений.
 func (trt *impl) DialContextKeepAlive(t time.Duration) Interface {
 	trt.dialContextKeepAlive = t
 	return trt
 }
 
-// MaximumIdleConnections Controls the maximum number of idle (keep-alive) connections across all hosts. Zero means no limit
+// MaximumIdleConnections Назначение максимального количества открытых не активных соединений. 0-без ограничений.
 func (trt *impl) MaximumIdleConnections(v uint) Interface {
 	trt.maximumIdleConnections = v
 	return trt
 }
 
-// MaximumIdleConnectionsPerHost If non-zero, controls the maximum idle (keep-alive) connections to keep per-host
+// MaximumIdleConnectionsPerHost Назначение максимального количества открытых не активных соединений для
+// каждого хоста. 0-без ограничений.
 func (trt *impl) MaximumIdleConnectionsPerHost(v uint) Interface {
 	trt.maximumIdleConnectionsPerHost = v
 	return trt
 }
 
-// IdleConnectionTimeout Is the maximum amount of time an idle (keep-alive) connection will remain idle before closing itself. Zero means no limit
+// IdleConnectionTimeout Назначение максимального количества открытых не активных соединений для всех
+// хостов. 0-без ограничений.
 func (trt *impl) IdleConnectionTimeout(t time.Duration) Interface {
 	trt.idleConnectionTimeout = t
 	return trt
 }
 
-// TLSHandshakeTimeout Specifies the maximum amount of time waiting to wait for a TLS handshake. Zero means no timeout
+// TLSHandshakeTimeout Назначение максимального времени ожидания обмена рукопожатиями по протоколу
+// TLS. 0-без ограничений.
 func (trt *impl) TLSHandshakeTimeout(t time.Duration) Interface {
 	trt.tlsHandshakeTimeout = t
 	return trt
 }
 
-// TLSSkipVerify Enables skip verify TLS certificate for all requests
+// TLSSkipVerify Установка режима отключения проверки TLS сертификатов.
 func (trt *impl) TLSSkipVerify(v bool) Interface {
 	trt.tlsInsecureSkipVerify = v
 	return trt
 }
 
-// TLSClientConfig Specifies the TLS configuration to use with tls.Client.
-// If nil, the default configuration is used.
-// If non-nil, HTTP/2 support may not be enabled by default
+// TLSClientConfig Настройки клиента TLS соединения.
+// Если =nil-используются настройки по умолчанию из стандартной библиотеки.
 func (trt *impl) TLSClientConfig(v *tls.Config) Interface {
 	trt.tlsClientConfig = v
 	return trt
 }
 
-// DialTLS Specifies an custom dial function for creating TLS connections for non-proxied HTTPS requests
+// DialTLS Назначение функции установки TLS соединения для запросов к HTTPS хостам.
 func (trt *impl) DialTLS(fn DialTLSFunc) Interface {
 	trt.tlsDialFunc = fn
 	return trt
 }
 
-// DialContextCustomFunc Specifies an custom dial function for creating unencrypted TCP connections
+// DialContextCustomFunc Назначение функции установки не шифрованного соединения с хостами.
 func (trt *impl) DialContextCustomFunc(fn DialContextFunc) Interface {
 	trt.dialContextCustomFunc = fn
 	return trt
 }
 
-// DualStack Enables RFC 6555-compliant "Happy Eyeballs" dialing when the network is "tcp" and the host in the address parameter resolves to both IPv4 and IPv6 addresses
+// DualStack Включение или отключения функции "Happy Eyeballs" RFC 6555.
 func (trt *impl) DualStack(v bool) Interface {
 	trt.dialContextDualStack = v
 	return trt
 }
 
-// TotalTimeout Specifies a time limit for requests made by this Client. The timeout includes connection time, any redirects, and reading the response body.
-// The timer remains running after Get, Head, Post, or Do return and will interrupt reading of the Response.Body.
-// A Timeout of zero means no timeout.
+// TotalTimeout Установка ограничения времени на выполнение запроса и загрузку всех данных
+// ответа. 0-без ограничений.
 func (trt *impl) TotalTimeout(t time.Duration) Interface {
 	trt.totalTimeout = t
 	return trt
 }
 
-// Transport Specifies of adjusted transport object
+// Transport Объект http транспорта.
 func (trt *impl) Transport(tr *http.Transport) Interface {
 	trt.transport = tr
 	return trt
 }
 
-// CookieJar Specifies of Cookie Jar interface
+// CookieJar Интерфейс объекта печенек.
 func (trt *impl) CookieJar(v http.CookieJar) Interface {
 	trt.cookieJar = v
 	return trt

@@ -2,34 +2,34 @@ package header
 
 import "net/http"
 
-// Interface is an interface of package
+// Interface Интерфейс пакета.
 type Interface interface {
-	// Add adds the key, value pair to the header.
+	// Add Добавление заголовка с именем ключа и значением.
 	Add(key string, value string)
 
-	// Del deletes the values associated with key.
+	// Del Удаление заголовка с именем ключа.
 	Del(key string)
 
-	// Get gets the first value associated with the given key.
+	// Get Получение первого значения заголовка с указанным ключём.
 	Get(key string) string
 
-	// IsSet Check, is key set
+	// IsSet Проверка существует ли заголовок с указанным ключём.
 	IsSet(key string) bool
 
-	// Set sets the header entries associated with key to the single element value.
+	// Set Установка значения заголовка с указанным ключём.
 	Set(key string, value string)
 
-	// Names Getting a list of all key names
+	// Names Получение списка всех ключей заголовка.
 	Names() (ret []string)
 
-	// Len Return number of defined header names
+	// Len Получение количества ключей заголовка.
 	Len() int
 
-	// Reset all headers
+	// Reset Очистка заголовка от всех ключей и их значений.
 	Reset()
 }
 
-// impl is an implementation of package
+// Объект сущности пакета.
 type impl struct {
 	Header http.Header
 }

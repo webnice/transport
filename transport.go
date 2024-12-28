@@ -9,14 +9,12 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/webnice/transport/v3/methods"
-	"github.com/webnice/transport/v3/request"
+	"github.com/webnice/transport/v4/request"
 )
 
-// New Function creates the transport object and return interface
+// New Конструктор объекта сущности пакета, возвращается интерфейс пакета.
 func New() Interface {
 	var trt = new(impl)
-	trt.methods = methods.New()
 	trt.requestPoolInterface = request.New()
 	trt.requestChan = make(chan request.Interface, requestChanBuffer)
 	trt.requestPoolLock = new(sync.Mutex)
@@ -27,31 +25,29 @@ func New() Interface {
 	return trt
 }
 
-// Error Return latest error
+// Error Последняя ошибка.
 func (trt *impl) Error() error { return trt.err }
 
-// ErrorFunc Registering the error function on the client side
+// ErrorFunc Регистрация функции получения ошибок транспорта.
 func (trt *impl) ErrorFunc(fn ErrorFunc) Interface { trt.errFunc = fn; return trt }
 
-// DebugFunc Set debug func and enable or disable debug mode
-// If fn=not nil - debug mode is enabled. If fn=nil, debug mode is disbled
+// DebugFunc Включение или отключение режима отладки.
+// Если передана функция отладки не равная nil, режим отладки включается.
+// Передача функции отладки равной nil отключает режим отладки.
 func (trt *impl) DebugFunc(fn DebugFunc) Interface { trt.debugFunc = fn; return trt }
 
-// Method Return interface of request methods
-func (trt *impl) Method() methods.Interface { return trt.methods }
-
-// RequestGet Загрузка из sync.Pool объекта request и возврат интерфейса к нему
-// Полученный объект необходимо возвращать в sync.Pool методом RequestPut во избежании утечки памяти
+// RequestGet Получение из бассейна объекта request.Interface.
+// Полученный объект обязательно необходимо вернуть в бассейн методом RequestPut для избежания утечки памяти.
 func (trt *impl) RequestGet() request.Interface {
 	return trt.requestPoolInterface.RequestGet().DebugFunc(request.DebugFunc(trt.debugFunc))
 }
 
-// RequestPut Возврат в sync.Pool объекта request
+// RequestPut Возвращение в бассейн объекта request.Interface.
 func (trt *impl) RequestPut(req request.Interface) { trt.requestPoolInterface.RequestPut(req) }
 
-// Client Returns the current http.Client
+// Client Получение клиента http.Client.
 // В пределах одного экземпляра transport.impl, http.Client создаётся только один раз
-// при первом вызове данной функции. Эта функция так же вызывается при первом вызове функции Do()
+// при первом вызове данной функции. Эта функция так же вызывается при первом вызове функции Do().
 func (trt *impl) Client() (ret *http.Client) {
 	if trt.client != nil {
 		return trt.client
@@ -61,7 +57,7 @@ func (trt *impl) Client() (ret *http.Client) {
 	} else if trt.tlsClientConfig != nil && trt.tlsInsecureSkipVerify {
 		trt.tlsClientConfig.InsecureSkipVerify = trt.tlsInsecureSkipVerify
 	}
-	// Создание объекта транспорта
+	// Создание объекта транспорта.
 	if trt.transport == nil {
 		trt.transport = &http.Transport{
 			Proxy:               trt.proxy,
@@ -82,7 +78,7 @@ func (trt *impl) Client() (ret *http.Client) {
 			}).DialContext
 		}
 	}
-	// Создание клиента http
+	// Создание клиента http.
 	trt.client = &http.Client{
 		Transport: trt.transport,
 		Timeout:   trt.totalTimeout,
@@ -92,28 +88,23 @@ func (trt *impl) Client() (ret *http.Client) {
 	return trt.client
 }
 
-// Do Executing the query in asynchronous mode. Non blocking function
-// When you first start
-// - 1. Создаётся транспорт
-// - 2. Создаётся пул воркеров обработки запросов
-// - 3. Выполняется запрос
-// For all subsequent calls, step 1 and step 2 are skipped
+// Do Выполнение запроса в асинхронном режиме.
 func (trt *impl) Do(req request.Interface) Interface {
-	// Создание транспорта, клиента http
+	// Создание транспорта, клиента http.
 	if trt.client == nil {
 		_ = trt.Client()
 	}
-	// Создание и запуск пула воркеров для обслуживания запросов
+	// Создание и запуск пула воркеров для обслуживания запросов.
 	if !trt.requestPoolStarted.Load().(bool) {
 		trt.makePool()
 	}
-	// Добавление запроса в пул задач
+	// Добавление запроса в пул задач.
 	trt.requestChan <- req
 
 	return trt
 }
 
-// Done Stopping the worker pool, closing connections
+// Done Остановка процессов работников, завершение соединений.
 func (trt *impl) Done() {
 	defer func() {
 		if e := recover(); e != nil {

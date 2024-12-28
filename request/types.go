@@ -8,140 +8,150 @@ import (
 	"sync"
 	"time"
 
-	"github.com/webnice/transport/v3/header"
-	"github.com/webnice/transport/v3/methods"
-	"github.com/webnice/transport/v3/response"
+	"github.com/webnice/dic"
+	"github.com/webnice/transport/v4/header"
+	"github.com/webnice/transport/v4/response"
 )
 
-// Pool is an interface of package
+// Pool Интерфейс бассейна повторно используемых объектов.
 type Pool interface {
-	// RequestGet Извлечение из pool нового элемента Request
+	// RequestGet Извлечение из бассейна нового объекта Request.
 	RequestGet() Interface
 
-	// RequestPut Возврат в sync.Pool использованного элемента Request
+	// RequestPut Возврат в бассейн элемента Request.
 	RequestPut(req Interface)
 }
 
-// Interface is an request interface
+// Interface Интерфейс пакета.
 type Interface interface {
-	// Cancel Aborting request
+	// Cancel Прерывание запроса.
 	Cancel() Interface
 
-	// Done Waiting for the request to finish
+	// Done Ожидание завершения выполнения запроса.
 	Done() Interface
 
-	// DoneWithContext Waiting for a request to complete, with the ability to interrupt the request through the context
+	// DoneWithContext Ожидание завершения выполнения запроса с передачей контекста с возможностью
+	// дополнительного контроля и прерывания.
 	DoneWithContext(ctx context.Context) Interface
 
-	// Error Return latest error
+	// Error Последняя ошибка.
 	Error() error
 
-	// DebugFunc Set debug func and enable or disable debug mode
-	// If fn=not nil - debug mode is enabled. If fn=nil, debug mode is disbled
+	// DebugFunc Включение или отключение режима отладки.
+	// Если передана функция отладки не равная nil, режим отладки включается.
+	// Передача функции отладки равной nil отключает режим отладки.
 	DebugFunc(fn DebugFunc) Interface
 
-	// Request Returns the http.Request prepared for the request
+	// ЗАПРОС
+
+	// Request Возвращается http.Request подготовленный к выполнению запроса.
 	Request() (*http.Request, error)
 
-	// Method Set request method
-	Method(methods.Value) Interface
+	// Method Назначение метода выполнения запроса.
+	Method(dic.IMethod) Interface
 
-	// URL Set request URL
+	// URL Назначение URI адреса для выполнения запроса.
+	// Deprecated: Используйте метод Uri.
 	URL(url string) Interface
 
-	// Referer Setting the referer header
+	// Uri Назначение URI адреса для выполнения запроса.
+	Uri(uri string) Interface
+
+	// Referer Назначение заголовка Referer.
 	Referer(referer string) Interface
 
-	// UserAgent Setting the UserAgent Request Header
+	// UserAgent Назначение заголовка UserAgent.
 	UserAgent(userAgent string) Interface
 
-	// ContentType Setting the Content-Type request header
+	// ContentType Назначение заголовка Content-Type.
 	ContentType(contentType string) Interface
 
-	// Accept Setting the Accept request header
+	// Accept Назначение заголовка Accept.
 	Accept(accept string) Interface
 
-	// AcceptEncoding Setting the Accept-Encoding request header
+	// AcceptEncoding Назначение заголовка Accept-Encoding.
 	AcceptEncoding(acceptEncoding string) Interface
 
-	// AcceptLanguage Setting the Accept-Language request header
+	// AcceptLanguage Назначение заголовка Accept-Language.
 	AcceptLanguage(acceptLanguage string) Interface
 
-	// Settings the Accept-Charset request header
+	// AcceptCharset Назначение заголовка Accept-Charset.
 	AcceptCharset(acceptCharset string) Interface
 
-	// Settings custom request header
+	// CustomHeader Назначение заголовка с произвольным названием и значением.
 	CustomHeader(name string, value string) Interface
 
-	// BasicAuth Set login and password for request basic authorization
+	// BasicAuth Назначение пользователя и пароля простой web авторизации.
 	BasicAuth(username string, password string) Interface
 
-	// Cookies Adding cookies to the request
+	// Cookies Добавление печенек в запрос.
 	Cookies(cookies []*http.Cookie) Interface
 
-	// Header is an interface for custom headers manipulation
+	// Header Интерфейс заголовка запроса.
 	Header() header.Interface
 
-	// Latency is an request latency without reading body of response
+	// Latency Задержка ответа сервера на запрос.
+	// Значение получено без учёта времени на чтение заголовков и тела ответа.
 	Latency() time.Duration
 
-	// Response is an response interface
+	// Response Интерфейс ответа на запрос.
 	Response() response.Interface
 
-	// DATA OF THE REQUEST
+	// ДАННЫЕ
 
-	// DataStream Data for the request body in the form of an interface of io.Reader
+	// DataStream Потоковые данные для тела запроса.
 	DataStream(data io.Reader) Interface
 
-	// DataString Data for the request body in the form of an string
+	// DataString Строковые данные тела запроса.
 	DataString(data string) Interface
 
-	// DataString Data for the request body in the form of an []byte
+	// DataBytes Данные тела запроса, представленные в качестве среза байт.
 	DataBytes(data []byte) Interface
 
-	// DataJSON The data for the query is created by serializing the object in JSON
-	DataJSON(data interface{}) Interface
+	// DataJSON Данные тела запроса представленные в качестве объекта.
+	// Объект перед передачей сериализуется в JSON.
+	DataJSON(data any) Interface
 
-	// DataXML The data for the query is created by serializing the object in XML
-	DataXML(data interface{}) Interface
+	// DataXML Данные тела запроса представленные в качестве объекта.
+	// Объект перед передачей сериализуется в XML.
+	DataXML(data any) Interface
 
-	// EXECUTING
+	// ВЫПОЛНЕНИЕ
 
-	// Do Executing the query and getting the result
+	// Do Создание и выполнение запроса инициализация и возврат интерфейса работы с ответом.
 	Do(client *http.Client) error
 }
 
-// impl is an implementation of package
+// Объект сущности пакета.
 type impl struct {
-	methods      methods.Interface // Интерфейс методов запроса
-	requestPool  *sync.Pool        // Пул объектов Request
-	responsePool response.Pool     // Интерфейс пула объектов Response
+	requestPool  *sync.Pool    // Бассейн объектов Request.
+	responsePool response.Pool // Интерфейс бассейна объектов Response.
 }
 
-// DebugFunc Is an a function for debug request/response data
+// DebugFunc Описание функции отладки запросов.
 type DebugFunc func(data []byte)
 
-// Request is an Request implementation
+// Request Объект Request.
 type Request struct {
-	context              context.Context    // Context interface
-	contextCancelFunc    context.CancelFunc // Context CancelFunc
-	method               methods.Value      // Метод запроса данных
-	header               header.Interface   // Заголовки запроса
-	err                  error              // Latest error
-	debugFunc            DebugFunc          // Is an a function for debug request/response data. If not nil - debug mode is enabled. If nil, debug mode is disbled
-	url                  *bytes.Buffer      // Запрашиваемый URL без данных
-	request              *http.Request      // Объект net/http.Request
-	requestData          *bytes.Reader      // Данные запроса
-	requestDataInterface io.Reader          // Интерфейс данных запроса
-	username             string             // Имя пользователя авторизации, если указан, то передаются заголовки авторизации
-	password             string             // Пароль авторизации
-	cookie               []*http.Cookie     // Печеньги запроса
-	timeBegin            time.Time          // Дата и время начала запроса
-	timeLatency          time.Duration      // Время ушедшее за выполнение запроса
-	response             response.Interface // Интерфейс результата запроса
-
-	tmpArr     []string // Variable
-	tmpOk      bool     // Variable
-	tmpCounter int      // Variable
-	tmpBytes   []byte   // Variable
+	context              context.Context    // Интерфейс контекста.
+	contextCancelFunc    context.CancelFunc // Функция прерывания через контекст.
+	method               dic.IMethod        // Метод запроса данных.
+	header               header.Interface   // Заголовки запроса.
+	err                  error              // Последняя ошибка.
+	debugFunc            DebugFunc          // Функция отладки и мониторинга.
+	uri                  *bytes.Buffer      // Запрашиваемый URI без данных.
+	request              *http.Request      // Объект http.Request.
+	requestData          *bytes.Reader      // Данные запроса.
+	requestDataInterface io.Reader          // Интерфейс данных запроса.
+	username             string             // Имя пользователя для авторизации, если указан, то передаются заголовки авторизации.
+	password             string             // Пароль пользователя для авторизации.
+	cookie               []*http.Cookie     // Печеньки запроса.
+	timeBegin            time.Time          // Дата и время начала запроса.
+	timeLatency          time.Duration      // Время ушедшее за выполнение запроса.
+	response             response.Interface // Интерфейс результата запроса.
+	// Переменные.
+	tmpArr     []string // Общая переменная.
+	tmpOk      bool     // Общая переменная.
+	tmpCounter int      // Общая переменная.
+	tmpBytes   []byte   // Общая переменная.
 }

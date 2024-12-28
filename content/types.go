@@ -3,62 +3,61 @@ package content
 import (
 	"io"
 
-	"github.com/webnice/transport/v3/data"
+	"github.com/webnice/transport/v4/data"
 
 	"golang.org/x/text/encoding"
 )
 
-// Interface is an interface of package
+// Interface Интерфейс пакета.
 type Interface interface {
 	io.WriterTo
 
-	// Transcode is an transcoding content from the specified encoding to UTF-8
+	// Transcode Перекодирование контента из указанной кодировки в UTF-8.
 	Transcode(e encoding.Encoding) Interface
 
-	// Transform is an transforming content using a custom function
+	// Transform Трансформирование исходного контента путём пропуска контента через переданный в функции ридер.
 	Transform(fn TransformFunc) Interface
 
-	// String Return content as string
+	// String Получение контента в виде строки.
 	String() (string, error)
 
-	// Bytes Return content as []byte
+	// Bytes Получение контента в виде среза байт.
 	Bytes() ([]byte, error)
 
-	// UnmarshalJSON Decoding content like JSON
-	UnmarshalJSON(o interface{}) error
+	// UnmarshalJson Декодирование контента в структуру, предполагается что контент является json.
+	UnmarshalJson(o any) error
 
-	// UnmarshalXML Decoding content like XML
-	UnmarshalXML(o interface{}) error
+	// UnmarshalXml Декодирование контента в структуру, предполагается что контент является xml.
+	UnmarshalXml(data any) error
 
-	// UnTar Разархивация контента методом TAR
+	// UnTar Разархивация контента методом TAR.
 	UnTar() Interface
 
-	// UnZip Разархивация контента методом ZIP (извлекается только первый файл)
+	// UnZip Разархивация контента методом ZIP (извлекается только первый файл).
 	UnZip() Interface
 
-	// UnGzip Разархивация контента методом GZIP
+	// UnGzip Разархивация контента методом GZIP.
 	UnGzip() Interface
 
-	// UnFlate Разархивация контента методом FLATE
+	// UnFlate Разархивация контента методом FLATE.
 	UnFlate() Interface
 
-	// BackToBegin Returns the content reading pointer to the beginning
-	// This allows you to repeat the work with content
+	// BackToBegin Перемещение точки чтения контента в начало контента.
 	BackToBegin() error
 }
 
-// TransformFunc is an func for streaming content conversion
+// TransformFunc Описание функции конвертации и трансформации контента.
 type TransformFunc func(r io.Reader) (io.Reader, error)
 
-// impl is an implementation of package
+// Объект сущности пакета.
 type impl struct {
-	esence data.ReadAtSeekerWriteToCloser // Данные контента
-	rdc    io.ReadCloser                  // Интерфейс
-
-	transcode encoding.Encoding // Если не равно nil, то контент перекодируется на лету из указанной кодировки
-	transform TransformFunc     // Функция потокового преобразования контента
-	unzip     bool              // =true - контент разархивируется алгоритмом сжатия ZIP, возвращается первый файл в архиве
-	untar     bool              // =true - контент разархивируется алгоритмом сжатия TAR
-	ungzip    bool              // =true - контент разархивируется алгоритмом сжатия GZIP
-	unflate   bool              // =true - контент разархивируется алгоритмом сжатия FLATE
+	essence data.ReadAtSeekerWriteToCloser // Данные контента.
+	rdc     io.ReadCloser                  // Интерфейс чтения контента.
+	// Контент.
+	transcode encoding.Encoding // Если не равно nil, то контент перекодируется на лету из указанной кодировки.
+	transform TransformFunc     // Функция потокового преобразования контента.
+	unZip     bool              // =true - контент сжатый алгоритмом сжатия ZIP, возвращается первый файл в архиве.
+	unTar     bool              // =true - контент сжатый алгоритмом сжатия TAR.
+	unGzip    bool              // =true - контент сжатый алгоритмом сжатия GZIP.
+	unFlate   bool              // =true - контент сжатый алгоритмом сжатия FLATE.
 }
